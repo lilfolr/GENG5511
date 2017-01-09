@@ -1,5 +1,6 @@
 #include <printf.h>
 #include <stdbool.h>
+#include <getopt.h>
 #include "generator.c"
 
 #define BUFFER 200

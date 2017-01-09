@@ -2,3 +2,5 @@ language: c
 script:
   - cd Program
   - make
+notifications:
+  slack: leighton-personal:qDniIaHsJ8P86IzoW1LBHN8p
