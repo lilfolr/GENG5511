@@ -13,20 +13,21 @@ int generate(){
     ///Generate random traffic to fifo file
     mkfifo(INGOING, 0666);
     printf("Made fifo\n");
-    int out_fd=open(INGOING, O_WRONLY);
-    printf("opened fifo for writing\n");
-    if (out_fd==-1) {
-        perror("open error");
-    }
     pid_t pid = fork();
     if (pid == 0){
         // child process
+        int out_fd=open(INGOING, O_WRONLY);
+        printf("opened fifo for writing\n");
+        if (out_fd==-1) {
+            perror("open error");
+        }
         while (1) {
             printf("Writing to fifo\n");
             char* input = "Hello World";
             if (write(out_fd, input, strlen(input))==-1) {
                 perror("write error");
             }
+            sleep(1);
         }
     }
     else if (pid > 0){
@@ -36,7 +37,7 @@ int generate(){
     else{
         // fork failed
         printf("fork() failed!\n");
-        return 1;
+        return -1;
     }
     
 }
