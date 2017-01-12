@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <getopt.h>
 #include "generator.c"
+#include "packet_sniffer.c"
 
 #define BUFFER 200
 
@@ -33,6 +34,12 @@ int main(int argc, char *argv[]) {
 		while (read(in_fd, in, BUFFER)>0) {
 			printf("Received data %s\n", in);
 		}
+    }else{
+    	sniff_packets();
     }
     return 0;
+}
+
+void buffer_handler(){
+
 }
