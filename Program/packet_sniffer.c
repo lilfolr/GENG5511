@@ -8,12 +8,12 @@
 #include<sys/socket.h>
 #include<arpa/inet.h>
 
-void ProcessPacket(unsigned char* buffer, int size);
+char *ProcessPacket(unsigned char* buffer, int size);
 
 unsigned int sock_raw;
 int tcp=0,udp=0,icmp=0,others=0,igmp=0,total=0,i,j;
 
-void sniff_packets(){
+int sniff_packets(){
     unsigned int saddr_size;
 	int data_size;
     struct sockaddr saddr;
@@ -25,20 +25,41 @@ void sniff_packets(){
 		printf("Socket Error\n");
 	}
 	sock_raw = sock_raw_signed;
-	while(1)
-	{
-		saddr_size = (unsigned int) sizeof saddr;
-		//Receive a packet
-		data_size = recvfrom(sock_raw , buffer , 65536 , 0 , &saddr , &saddr_size);
-		if(data_size <0 ){
-			printf("Recv from error , failed to get packets\n");
-		}
-		//Now process the packet
-		ProcessPacket(buffer , data_size);
-	}
+    mkfifo(INGOING, 0666);
+    printf("Made fifo\n");
+    pid_t pid = fork();
+    if (pid == 0){
+        // child process
+        int out_fd=open(INGOING, O_WRONLY);
+        printf("opened fifo for writing\n");
+        if (out_fd==-1) {
+            perror("open error");
+        }
+        while (1) {
+			saddr_size = (unsigned int) sizeof saddr;
+			//Receive a packet
+			data_size = recvfrom(sock_raw , buffer , 65536 , 0 , &saddr , &saddr_size);
+			if(data_size <0 ){
+				printf("Recv from error , failed to get packets\n");
+			}
+			//Now process the packet
+            printf("Writing to fifo\n");
+            char* input = ProcessPacket(buffer , data_size);
+            if (write(out_fd, input, strlen(input))==-1) {
+                perror("write error");
+            }
+        }
+    }
+    else if (pid > 0){
+        return 0;
+    }
+    else{
+        printf("fork() failed!\n");
+        return -1;
+    }
 }
 
-void ProcessPacket(unsigned char* buffer, int size)
+char* ProcessPacket(unsigned char* buffer, int size)
 {
 	//Get the IP Header part of this packet
 	struct iphdr *iph = (struct iphdr*)buffer;
@@ -65,5 +86,7 @@ void ProcessPacket(unsigned char* buffer, int size)
 			++others;
 			break;
 	}
-	printf("TCP : %d   UDP : %d   ICMP : %d   IGMP : %d   Others : %d   Total : %d\r",tcp,udp,icmp,igmp,others,total);
+	char *return_data = (char*)malloc(30 * sizeof(char));
+	sprintf(return_data, "TCP : %d   UDP : %d   ICMP : %d   IGMP : %d   Others : %d   Total : %d\n",tcp,udp,icmp,igmp,others,total);
+	return return_data;
 }
