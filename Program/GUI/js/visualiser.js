@@ -11,17 +11,18 @@ function node_color(is_server, is_client) {
     return "#000";
 }
 $(function() {
-    // SETUP MODALS
-    $('#modal_node_new').modal({
-        dismissible: true, // Modal can be dismissed by clicking outside of the modal
-        opacity: .5, // Opacity of modal background
-        startingTop: '4%', // Starting top style attribute
-        endingTop: '10%', // Ending top style attribute
+    // SETUP COMPONENTS
+    $('#side_bar').sideNav({
+        edge: 'right',
+        closeOnClick: false,
+        draggable: true
     });
 
     // SETUP NETWORK
     var nodeIds, nodesArray, nodes, edgesArray, edges, network;
-    nodeIds = [2, 3, 4, 5];
+    nodeIds = [1];
+    current_node_id = 1;
+    current_x = 0;
 
     // create an array with nodes
     nodesArray = [
@@ -53,20 +54,60 @@ $(function() {
         network.fit({ animation: options });
     }
 
+    function load_details_bar(node_id) {
+        my_node = null;
+        type_array = [];
+        x = network.nodes;
+        for (i = 0; i < nodesArray.length; i++) {
+            if (nodesArray[i].id == node_id) {
+                my_node = nodesArray[i]
+            }
+        }
+        if (my_node !== null) {
+            $("#node_name").val(my_node.label);
+            $("#node_type").val(my_node.type.split(','));
+            $("#node_type").material_select();
+            $('#side_bar').sideNav('show');
+        }
+    }
 
 
     $("#nav_btn_node_new").click(function() {
-        $('#modal_node_new').modal('open');
+        $("#node_name").val("");
+        $('#side_bar').sideNav('show');
     });
     $("#nav_btn_node_del").click(function() {
-
+        network.deleteSelected();
     })
-    $("#modal_form_node_new").submit(function() {
-        var newId = (Math.random() * 1e7).toString(32);
-        nodes.add({ id: newId, label: $("#new_node_name").val(), shape: 'circle', color: node_color($("#new_node_type").val().includes('S'), $("#new_node_type").val().includes('C')) });
+    $("#form_node_new").submit(function() {
+        var newId = ++current_node_id;
+        current_x += 100;
+        s = $("#node_type").val().includes('S');
+        c = $("#node_type").val().includes('C');
+        node_to_add = {
+            id: newId,
+            label: $("#node_name").val(),
+            shape: 'circle',
+            color: node_color(s, c),
+            type: s ? c ? 'S,C' : 'S' : 'C',
+            x: current_x
+        };
+        nodesArray.push(node_to_add)
+        nodes.add(node_to_add);
         nodeIds.push(newId);
-        $('#modal_node_new').modal('close');
-        $("#new_node_name").val("");
+        $("#node_name").val("");
         fitAnimated();
     });
+
+    network.on("click", function(params) {
+        if (params.nodes.length == 1) {
+            load_details_bar(params.nodes[0])
+        }
+    });
+
+
+    $("#btn_close_sideNav").click(function() {
+        $('#side_bar').sideNav('hide');
+        $("#node_name").val("");
+    })
 });

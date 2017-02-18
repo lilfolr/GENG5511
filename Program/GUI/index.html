@@ -32,46 +32,53 @@
         <li><a href="#" id="nav_btn_node_new">Create New</a></li>
         <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
     </ul>
-    <!--New Node Modal Structure -->
-    <div id="modal_node_new" class="modal">
-        <form id="modal_form_node_new" action="#">
-            <div class="modal-content">
-                <h4>New node</h4>
-                <div class="row">
-                    <div class="input-field col s12">
-                        <input placeholder="New Node" required="required" id="new_node_name" type="text" class="validate">
-                        <label for="node_name">Node Name</label>
-                    </div>
-                    <div class="input-field col s12">
-                        <select required="required" id="new_node_type" class="validate" multiple>
+    <!--Details Side Bar -->
+    <ul id="slide-out" class="side-nav">
+        <li style="text-align: center">
+            <a>
+                <h5>Node Details</h5>
+            </a>
+        </li>
+        <li>
+            <div class="divider"></div>
+        </li>
+        <form id="form_node_new" action="#">
+            <div class="row">
+                <div class="input-field col s12">
+                    <input placeholder="Node Name" required="required" id="node_name" type="text" class="validate">
+                    <label for="node_name">Node Name</label>
+                </div>
+                <div class="input-field col s12">
+                    <select required="required" id="node_type" class="validate" multiple>
                             <option value="S" selected>Server</option>
                             <option value="C">Client</option>
                         </select>
-                        <label>Node Type</label>
-                    </div>
+                    <label>Node Type</label>
+                </div>
+
+                <div class="input-field col s6">
+                    <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</a>
+                </div>
+                <div class="input-field col s6">
+                    <button type="submit" class="waves-effect waves-green btn-flat">Create</button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="submit" class=" waves-effect waves-green btn-flat ">Create</button>
-                <a href="#" class="modal-action modal-close waves-effect waves-red btn-flat ">Close</a>
-            </div>
         </form>
-    </div>
+    </ul>
+    <a data-activates="slide-out" id="side_bar" style="display: none"></a>
     <nav class="black">
         <div class="nav-wrapper">
             <a href="#" class="brand-logo center">GENG5511 - Firewall Visualisation</a>
-            <ul id="nav-mobile" class="left hide-on-med-and-down">
+            <ul id="nav-mobile" class="left hide-on-small-and-down">
                 <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_file">File<i class="material-icons right">arrow_drop_down</i></a></li>
                 <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_nodes">Manage Nodes<i class="material-icons right">arrow_drop_down</i></a></li>
             </ul>
         </div>
     </nav>
 
-
-
     <div id="firewall_network"></div>
 
-    <!--Import jQuery before materialize.js-->
+    <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
