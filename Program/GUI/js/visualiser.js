@@ -29,36 +29,11 @@ function node_color(is_server, is_client) {
 
 function alert_msg(msg, level) {
     if (level == "error") {
-        Materialize.toast(msg, 10000, "red");
+        Materialize.toast(msg, 200000, "red");
     } else if (level == "warning") {
         Materialize.toast(msg, 8000, "orange");
     } else if (level == "info") {
         Materialize.toast(msg, 5000, "blue");
-    }
-}
-
-function setup_socket() {
-    if ("WebSocket" in window) {
-        var ws = new WebSocket("ws://localhost:9998/");
-
-        ws.onopen = function () {
-            // Web Socket is connected, send data using send()
-            ws.send("Message to send");
-            alert_msg("Message is sent...", 'info');
-        };
-
-        ws.onmessage = function (evt) {
-            var received_msg = evt.data;
-            alert_msg("Message received..."+received_msg, 'info');
-        };
-
-        ws.onclose = function () {
-            // websocket is closed.
-            alert_msg("Socket connection closed", 'warning');
-        };
-    } else {
-        // The browser doesn't support WebSocket
-        alert("WebSocket NOT supported by your Browser!");
     }
 }
 $(function () {
@@ -217,7 +192,7 @@ $(function () {
         if (params.nodes.length == 1) {
             if (connect_node_start !== null) {
                 if (network.getSelectedNodes()[0] == connect_node_start) {
-                    alert_msg("Can't connect node to self", "error");
+                    alert_msg("Can't connect node to self", "warning");
                 } else {
                     already_connected = false;
                     for (i = 0; i < edges.length; i++) {
@@ -230,7 +205,7 @@ $(function () {
                         }
                     }
                     if (already_connected) {
-                        alert_msg("Nodes already connected", "error");
+                        alert_msg("Nodes already connected", "warning");
                     } else {
                         new_edge = {
                             id: ++current_edge_id,

@@ -1,3 +1,5 @@
 Program/cmake-build-debug/*
 Program/.idea/*
 *.swp
+
+env/
