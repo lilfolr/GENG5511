@@ -29,14 +29,39 @@ function node_color(is_server, is_client) {
 
 function alert_msg(msg, level) {
     if (level == "error") {
-        Materialize.toast(msg, 5000, "red");
+        Materialize.toast(msg, 10000, "red");
     } else if (level == "warning") {
-        Materialize.toast(msg, 5000, "orange");
+        Materialize.toast(msg, 8000, "orange");
     } else if (level == "info") {
         Materialize.toast(msg, 5000, "blue");
     }
 }
-$(function() {
+
+function setup_socket() {
+    if ("WebSocket" in window) {
+        var ws = new WebSocket("ws://localhost:9998/");
+
+        ws.onopen = function () {
+            // Web Socket is connected, send data using send()
+            ws.send("Message to send");
+            alert_msg("Message is sent...", 'info');
+        };
+
+        ws.onmessage = function (evt) {
+            var received_msg = evt.data;
+            alert_msg("Message received..."+received_msg, 'info');
+        };
+
+        ws.onclose = function () {
+            // websocket is closed.
+            alert_msg("Socket connection closed", 'warning');
+        };
+    } else {
+        // The browser doesn't support WebSocket
+        alert("WebSocket NOT supported by your Browser!");
+    }
+}
+$(function () {
     //CONSTANTS
     NODE_SPACING = 200;
 
@@ -68,9 +93,11 @@ $(function() {
     nodes = new vis.DataSet(nodeDetails);
 
     current_edge_id = 0;
-    var edges = new vis.DataSet([
-        { id: 0, from: 0, to: 1 },
-    ]);
+    var edges = new vis.DataSet([{
+        id: 0,
+        from: 0,
+        to: 1
+    }, ]);
 
     // create a network
     var container = document.getElementById('firewall_network');
@@ -92,6 +119,8 @@ $(function() {
         }
     };
     var network = new vis.Network(container, data, options);
+
+    setup_socket();
 
     function fitAnimated() {
         var options = {
@@ -116,17 +145,21 @@ $(function() {
         }
     }
 
-    $("#nav_btn_node_new").click(function() {
+    function load_firewall_dialog(node_id) {
+
+    }
+
+    $("#nav_btn_node_new").click(function () {
         $("#node_name").val("");
         $("#node_details_btn").text("Create");
         show_side_nav();
     });
-    $("#nav_btn_node_del").click(function() {
+    $("#nav_btn_node_del").click(function () {
         network.deleteSelected();
     })
 
     connect_node_start = null;
-    $("#nav_btn_node_connect").click(function() {
+    $("#nav_btn_node_connect").click(function () {
         if (network.getSelectedNodes().length == 1) {
             connect_node_start = network.getSelectedNodes()[0];
             alert_msg('Select node to connect to', 'info');
@@ -135,7 +168,15 @@ $(function() {
         }
     });
 
-    $("#form_node_new").submit(function() {
+    $("#nav_btn_node_firewall").click(function () {
+        if (network.getSelectedNodes().length == 1) {
+            node_id = network.getSelectedNodes()[0];
+            load_firewall_dialog(node_id);
+        } else {
+            alert_msg('Select a node first', 'warning');
+        }
+    });
+    $("#form_node_new").submit(function () {
         name = $("#node_name").val();
         s = $("#node_type").val().includes('S');
         c = $("#node_type").val().includes('C');
@@ -172,7 +213,7 @@ $(function() {
         fitAnimated();
     });
 
-    network.on("click", function(params) {
+    network.on("click", function (params) {
         if (params.nodes.length == 1) {
             if (connect_node_start !== null) {
                 if (network.getSelectedNodes()[0] == connect_node_start) {
@@ -211,7 +252,7 @@ $(function() {
     });
 
 
-    $("#btn_close_sideNav").click(function() {
+    $("#btn_close_sideNav").click(function () {
         hide_side_nav();
         $("#node_name").val("");
     })
