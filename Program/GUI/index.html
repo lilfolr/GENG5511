@@ -2,7 +2,6 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <style>
         .dropdown-content li>a {
             color: #000000 !important;
@@ -12,12 +11,15 @@
             width: 75% !important;
             max-width: 500px;
         }
+        
+        #sidenav-overlay {
+            display: none;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="css/vis.min.css">
     <script type="text/javascript" src="js/vis.min.js"></script>
-
 </head>
 
 <body>
@@ -34,7 +36,7 @@
     </ul>
     <!--Details Side Bar -->
     <ul id="slide-out" class="side-nav">
-        <li style="text-align: center">
+        <li style="text-align: center;">
             <a>
                 <h5>Node Details</h5>
             </a>
@@ -55,12 +57,11 @@
                         </select>
                     <label>Node Type</label>
                 </div>
-
                 <div class="input-field col s6">
                     <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</a>
                 </div>
                 <div class="input-field col s6">
-                    <button type="submit" class="waves-effect waves-green btn-flat">Create</button>
+                    <button type="submit" id="node_details_btn" class="waves-effect waves-green btn-flat">Create</button>
                 </div>
             </div>
         </form>
@@ -75,16 +76,14 @@
             </ul>
         </div>
     </nav>
-
     <div id="firewall_network"></div>
-
     <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <script>
-        (function($) {
-            $(function() {
+        (function ($) {
+            $(function () {
                 $("select[required]").css({
                     display: "inline",
                     height: 0,
