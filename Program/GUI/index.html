@@ -15,6 +15,14 @@
         #sidenav-overlay {
             display: none;
         }
+        
+        .dropdown-content {
+            overflow-y: visible !important;
+        }
+        
+        .dropdown-content .dropdown-content {
+            margin-left: 30% !important;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -34,7 +42,9 @@
         <li><a href="#" id="nav_btn_node_new">Create New</a></li>
         <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
         <li class="divider"></li>
-        <li><a class='dropdown-button d' href='#' data-activates='nav_dropdown_firewall' data-hover="hover" data-alignment="left">Node Firewall</a></li>
+        <li><a href="#" id="nav_btn_node_connect">Connect Nodes</a></li>
+        <li class="divider"></li>
+        <li><a class='dropdown-button d' href='#' data-activates='nav_dropdown_firewall' data-hover="hover" data-alignment="left">Node Firewall<i class="mdi mdi-chevron-right"></i></a></li>
     </ul>
     <!-- Manage Nodes ==> Firewall  - Dropdown Structure -->
     <ul id='nav_dropdown_firewall' class='dropdown-content'>
@@ -91,8 +101,8 @@
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <script>
-        (function ($) {
-            $(function () {
+        (function($) {
+            $(function() {
                 $("select[required]").css({
                     display: "inline",
                     height: 0,
@@ -103,7 +113,7 @@
                 $('.dropdown-button').dropdown({
                     inDuration: 300,
                     outDuration: 225,
-                    hover: true, // Activate on hover
+                    hover: false, // Activate on hover
                     belowOrigin: true, // Displays dropdown below the button
                     alignment: 'right' // Displays dropdown with edge aligned to the left of button
                 });
