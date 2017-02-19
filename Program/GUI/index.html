@@ -23,16 +23,25 @@
 </head>
 
 <body>
-    <!-- Dropdown Structure -->
+    <!-- File - Dropdown Structure -->
     <ul id="nav_dropdown_file" class="dropdown-content">
         <li><a href="#" id="nav_btn_file_new">New</a></li>
         <li><a href="#" id="nav_btn_file_save">Save</a></li>
         <li><a href="#" id="nav_btn_file_open">Open</a></li>
     </ul>
-    <!-- Dropdown Structure -->
+    <!-- Manage Nodes - Dropdown Structure -->
     <ul id="nav_dropdown_nodes" class="dropdown-content">
         <li><a href="#" id="nav_btn_node_new">Create New</a></li>
         <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
+        <li class="divider"></li>
+        <li><a class='dropdown-button d' href='#' data-activates='nav_dropdown_firewall' data-hover="hover" data-alignment="left">Node Firewall</a></li>
+    </ul>
+    <!-- Manage Nodes ==> Firewall  - Dropdown Structure -->
+    <ul id='nav_dropdown_firewall' class='dropdown-content'>
+        <li><a href="#!">one</a></li>
+        <li><a href="#!">two</a></li>
+        <li class="divider"></li>
+        <li><a href="#!">three</a></li>
     </ul>
     <!--Details Side Bar -->
     <ul id="slide-out" class="side-nav">
