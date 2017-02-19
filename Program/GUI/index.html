@@ -15,14 +15,6 @@
         #sidenav-overlay {
             display: none;
         }
-        
-        /*.dropdown-content {
-            overflow-y: visible !important;
-        }
-        
-        .dropdown-content .dropdown-content {
-            margin-left: 30% !important;
-        }*/
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -46,7 +38,7 @@
         <li class="divider"></li>
         <li><a href="#" id="nav_btn_node_firewall">Node Firewall</a></li>
     </ul>
-     <!--Manage Nodes ==> Firewall  - Dropdown Structure 
+    <!--Manage Nodes ==> Firewall  - Dropdown Structure 
     <ul id='nav_dropdown_firewall' class='dropdown-content'>
         <li><a href="#!">one</a></li>
         <li><a href="#!">two</a></li>
@@ -95,7 +87,27 @@
             </ul>
         </div>
     </nav>
-    <div id="firewall_network"></div>
+    <div class="row">
+        <div class="col s5" id="table">
+            <table class="bordered highlight">
+                <thead>
+                    <tr>
+                        <th data-field="id">ID</th>
+                        <th data-field="name">Name</th>
+                        <th data-field="price">Packets In [T]</th>
+                        <th data-field="price">Packets In Blocked</th>
+                        <th data-field="price">Packets Out [T]</th>
+                        <th data-field="price">Packets Out Blocked</th>
+                    </tr>
+                </thead>
+                <tbody id='data_table'>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="col s7" id="firewall_network"></div>
+    </div>
+
     <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>

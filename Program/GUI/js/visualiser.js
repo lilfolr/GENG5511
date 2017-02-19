@@ -36,7 +36,7 @@ function alert_msg(msg, level) {
         Materialize.toast(msg, 5000, "blue");
     }
 }
-$(function () {
+$(function() {
     //CONSTANTS
     NODE_SPACING = 200;
 
@@ -96,6 +96,7 @@ $(function () {
     var network = new vis.Network(container, data, options);
 
     setup_socket();
+    start_polling();
 
     function fitAnimated() {
         var options = {
@@ -124,17 +125,17 @@ $(function () {
 
     }
 
-    $("#nav_btn_node_new").click(function () {
+    $("#nav_btn_node_new").click(function() {
         $("#node_name").val("");
         $("#node_details_btn").text("Create");
         show_side_nav();
     });
-    $("#nav_btn_node_del").click(function () {
+    $("#nav_btn_node_del").click(function() {
         network.deleteSelected();
     })
 
     connect_node_start = null;
-    $("#nav_btn_node_connect").click(function () {
+    $("#nav_btn_node_connect").click(function() {
         if (network.getSelectedNodes().length == 1) {
             connect_node_start = network.getSelectedNodes()[0];
             alert_msg('Select node to connect to', 'info');
@@ -143,7 +144,7 @@ $(function () {
         }
     });
 
-    $("#nav_btn_node_firewall").click(function () {
+    $("#nav_btn_node_firewall").click(function() {
         if (network.getSelectedNodes().length == 1) {
             node_id = network.getSelectedNodes()[0];
             load_firewall_dialog(node_id);
@@ -151,7 +152,7 @@ $(function () {
             alert_msg('Select a node first', 'warning');
         }
     });
-    $("#form_node_new").submit(function () {
+    $("#form_node_new").submit(function() {
         name = $("#node_name").val();
         s = $("#node_type").val().includes('S');
         c = $("#node_type").val().includes('C');
@@ -188,7 +189,7 @@ $(function () {
         fitAnimated();
     });
 
-    network.on("click", function (params) {
+    network.on("click", function(params) {
         if (params.nodes.length == 1) {
             if (connect_node_start !== null) {
                 if (network.getSelectedNodes()[0] == connect_node_start) {
@@ -227,7 +228,7 @@ $(function () {
     });
 
 
-    $("#btn_close_sideNav").click(function () {
+    $("#btn_close_sideNav").click(function() {
         hide_side_nav();
         $("#node_name").val("");
     })
