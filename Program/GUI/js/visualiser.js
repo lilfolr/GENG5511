@@ -27,13 +27,13 @@ function node_color(is_server, is_client) {
     return "#000";
 }
 
-function alert_msg(msg, level) {
+function alert_msg(msg, level, timeout) {
     if (level == "error") {
-        Materialize.toast(msg, 200000, "red");
+        Materialize.toast(msg, timeout || 200000, "red");
     } else if (level == "warning") {
-        Materialize.toast(msg, 8000, "orange");
+        Materialize.toast(msg, timeout || 8000, "orange");
     } else if (level == "info") {
-        Materialize.toast(msg, 5000, "blue");
+        Materialize.toast(msg, timeout || 5000, "blue");
     }
 }
 $(function() {

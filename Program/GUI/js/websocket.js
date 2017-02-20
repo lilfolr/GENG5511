@@ -13,7 +13,10 @@ function setup_socket() {
         };
 
         ws.onclose = function() {
-            alert_msg("Socket connection closed", 'error');
+            alert_msg("Socket connection closed. Retrying in 5s", 'error', 5000);
+            setTimeout(function(){
+                ws = new WebSocket("ws://localhost:9998/");
+                setup_socket();}, 5000);
         };
     } else {
         alert("WebSocket NOT supported by your Browser!", 'error');
@@ -30,7 +33,7 @@ function process_msg(msg) {
         default:
             // Waiting for polling information
             j = JSON.parse(msg);
-            var markup = "<tr><td>" + j.id + "</td><td>name</td><td>" + j.p_in + "</td><td>" + j.p_in_b + "</td><td>" + j.p_out + "</td><td>" + j.p_out_b + "</td></tr>";
+            var markup = "<tr><td>" + j.id + "</td><td>Server name</td><td>" + j.p_in + "</td><td>" + j.p_in_b + "</td><td>" + j.p_out + "</td><td>" + j.p_out_b + "</td></tr>";
             $("#data_table").children().remove();
             $("#data_table").append(markup);
     }
