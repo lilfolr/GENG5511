@@ -1,5 +1,5 @@
 var ws = new WebSocket("ws://localhost:9998/");
-
+timeout = 5;
 function setup_socket() {
     if ("WebSocket" in window) {
         ws.onopen = function() {
@@ -13,10 +13,11 @@ function setup_socket() {
         };
 
         ws.onclose = function() {
-            alert_msg("Socket connection closed. Retrying in 5s", 'error', 5000);
+            timeout = timeout *2;
+            alert_msg("Socket connection closed. Retrying in "+timeout+"s", 'error', timeout*1000);
             setTimeout(function(){
                 ws = new WebSocket("ws://localhost:9998/");
-                setup_socket();}, 5000);
+                setup_socket();}, timeout*1000);
         };
     } else {
         alert("WebSocket NOT supported by your Browser!", 'error');
