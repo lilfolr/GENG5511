@@ -95,9 +95,6 @@ $(function() {
     };
     var network = new vis.Network(container, data, options);
 
-    setup_socket();
-    start_polling();
-
     function fitAnimated() {
         var options = {
             easingFunction: "easeInQuad"

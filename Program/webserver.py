@@ -1,28 +1,31 @@
-#!/usr/bin/env python
+from aiohttp import web
+import socketio
 
-import asyncio
-import websockets
-import json
-from random import randint
+sio = socketio.AsyncServer()
+app = web.Application()
+sio.attach(app)
 
-async def run(websocket, path):
-    while True:
-        msg = await websocket.recv()
-        print ("< "+msg)
-        if msg == 'ack':
-            print ("> ack")
-            await websocket.send('ack')
-            continue
-        if msg == 'poll_status':
-            print ("> node data")
-            node_data = {'id': 1,
-                         'p_in': randint(10,90),
-                         'p_in_b': randint(0,9),
-                         'p_out': randint(10,90),
-                         'p_out_b': randint(0,9)}
-            await websocket.send(json.dumps(node_data))
+async def index(request):
+    """Serve the client-side application."""
+    with open('GUI/index.html') as f:
+        return web.Response(text=f.read(), content_type='text/html')
 
-start_server = websockets.serve(run, 'localhost', 9998)
+@sio.on('connect', namespace='')
+def connect(sid, environ):
+    print("connect ", sid)
 
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+@sio.on('chat message', namespace='')
+async def message(sid, data):
+    print("message ", data)
+    await sio.emit('reply', room=sid)
+
+@sio.on('disconnect', namespace='')
+def disconnect(sid):
+    print('disconnect ', sid)
+
+app.router.add_static('/css', 'GUI/css')
+app.router.add_static('/js', 'GUI/js')
+app.router.add_get('/', index)
+
+if __name__ == '__main__':
+    web.run_app(app)
