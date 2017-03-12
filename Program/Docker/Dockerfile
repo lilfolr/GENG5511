@@ -10,3 +10,7 @@ RUN apk add --update \
   && rm -rf /var/cache/apk/*
 
 COPY ulogd.conf /etc/ulogd.conf
+COPY iptables-save iptables-save
+# Once the container is made, the following needs to be run:
+# su root -c 'iptables-restore iptables-save'
+# This cant be in the dockerfile - https://github.com/docker/docker/issues/1916
