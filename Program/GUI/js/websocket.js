@@ -1,4 +1,6 @@
-var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+var socket = io.connect('http://localhost:8080');
+alert_msg('Connecting to socket...', 'info');
+
 socket.on('connect', function () {
     alert_msg('Socket Connected.', 'info');
 });

@@ -16,42 +16,36 @@
             display: none;
         }
         #toast-container {
-  top: auto !important;
-  right: auto !important;
-  bottom: 10%;
-  left:7%;  
-}
+            top: auto !important;
+            right: auto !important;
+            bottom: 10%;
+            left:7%;  
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="css/vis.min.css">
     <script type="text/javascript" src="js/vis.min.js"></script>
+    <script>
+        var app; // vuejs app
+    </script>
 </head>
 
-<body>
-    <!-- File - Dropdown Structure -->
+<body><div id='app'>
+<!-- File - Dropdown Structure -->
     <ul id="nav_dropdown_file" class="dropdown-content">
         <li><a href="#" id="nav_btn_file_new">New</a></li>
         <li><a href="#" id="nav_btn_file_save">Save</a></li>
         <li><a href="#" id="nav_btn_file_open">Open</a></li>
     </ul>
-    <!-- Manage Nodes - Dropdown Structure -->
+<!-- Manage Nodes - Dropdown Structure -->
     <ul id="nav_dropdown_nodes" class="dropdown-content">
         <li><a href="#" id="nav_btn_node_new">Create New</a></li>
         <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
         <li class="divider"></li>
         <li><a href="#" id="nav_btn_node_connect">Connect Nodes</a></li>
-        <li class="divider"></li>
-        <li><a href="#" id="nav_btn_node_firewall">Node Firewall</a></li>
     </ul>
-    <!--Manage Nodes ==> Firewall  - Dropdown Structure 
-    <ul id='nav_dropdown_firewall' class='dropdown-content'>
-        <li><a href="#!">one</a></li>
-        <li><a href="#!">two</a></li>
-        <li class="divider"></li>
-        <li><a href="#!">three</a></li>
-    </ul>-->
-    <!--Details Side Bar -->
+<!--Details Side Bar -->
     <ul id="slide-out" class="side-nav">
         <li style="text-align: center;">
             <a>
@@ -74,15 +68,31 @@
                         </select>
                     <label>Node Type</label>
                 </div>
+                <div class="input-field col s12">
+                    <button type="button" id="node_details_firewall" style="margin: 0 auto; display: table;" class="waves-effect waves-yellow btn-flat">View node firewall</button>
+                </div>
                 <div class="input-field col s6">
                     <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</a>
                 </div>
                 <div class="input-field col s6">
                     <button type="submit" id="node_details_btn" class="waves-effect waves-green btn-flat">Create</button>
                 </div>
+
             </div>
         </form>
     </ul>
+
+<!-- Firewall Modal -->
+  <div id="firewall_modal" class="modal modal-fixed-footer">
+    <div class="modal-content">
+      <h4>Firewall - {{selected_node.label}}</h4>
+      <p>A bunch of text</p>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
+    </div>
+  </div>
+<!-- Nav bar -->
     <a data-activates="slide-out" id="side_bar" style="display: none"></a>
     <nav class="black">
         <div class="nav-wrapper">
@@ -93,6 +103,7 @@
             </ul>
         </div>
     </nav>
+<!-- Data table-->
     <div class="row">
         <div class="col s5" id="table">
             <table class="bordered highlight">
@@ -113,13 +124,16 @@
         </div>
         <div class="col s7" id="firewall_network"></div>
     </div>
+    </div>
 
     <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script type="text/javascript" src="js/app.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script type="text/javascript" src="js/websocket.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <script>
         (function($) {
             $(function() {
@@ -133,9 +147,9 @@
                 $('.dropdown-button').dropdown({
                     inDuration: 300,
                     outDuration: 225,
-                    hover: false, // Activate on hover
-                    belowOrigin: true, // Displays dropdown below the button
-                    alignment: 'right' // Displays dropdown with edge aligned to the left of button
+                    hover: false,       // Activate on hover
+                    belowOrigin: true,  // Displays dropdown below the button
+                    alignment: 'right'  // Displays dropdown with edge aligned to the left of button
                 });
             }); // End Document Ready
         })(jQuery); // End of jQuery name space

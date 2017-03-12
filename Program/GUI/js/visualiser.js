@@ -37,6 +37,8 @@ function alert_msg(msg, level, timeout) {
     }
 }
 $(function() {
+    $('.modal').modal();
+
     //CONSTANTS
     NODE_SPACING = 200;
 
@@ -51,8 +53,8 @@ $(function() {
     var nodeDetails, nodes, edgesArray, edges, network;
     current_node_id = 1;
     current_x = NODE_SPACING;
-
-    nodeDetails = [{
+    
+    app.$data.nodes= [{
         id: 0,
         label: 'Client 1',
         shape: 'circle',
@@ -65,7 +67,7 @@ $(function() {
         type: 'S',
         color: node_color(1, 0)
     }];
-    nodes = new vis.DataSet(nodeDetails);
+    nodes = new vis.DataSet(app.$data.nodes);
 
     current_edge_id = 0;
     var edges = new vis.DataSet([{
@@ -114,17 +116,19 @@ $(function() {
             $("#node_type").val(my_node.type.split(','));
             $("#node_type").material_select();
             $("#node_details_btn").text("Save");
+            $("#node_details_firewall").prop('disabled', false);            
             show_side_nav();
         }
     }
 
-    function load_firewall_dialog(node_id) {
-
+    function load_firewall_dialog() {
+        $('#firewall_modal').modal('open');
     }
 
     $("#nav_btn_node_new").click(function() {
         $("#node_name").val("");
         $("#node_details_btn").text("Create");
+        $("#node_details_firewall").prop('disabled', true);
         show_side_nav();
     });
     $("#nav_btn_node_del").click(function() {
@@ -141,14 +145,15 @@ $(function() {
         }
     });
 
-    $("#nav_btn_node_firewall").click(function() {
+    $('#node_details_firewall').click(function(){
         if (network.getSelectedNodes().length == 1) {
             node_id = network.getSelectedNodes()[0];
-            load_firewall_dialog(node_id);
+            load_firewall_dialog();
         } else {
             alert_msg('Select a node first', 'warning');
         }
-    });
+    })
+
     $("#form_node_new").submit(function() {
         name = $("#node_name").val();
         s = $("#node_type").val().includes('S');
