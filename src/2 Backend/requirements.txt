@@ -3,11 +3,15 @@ appdirs==1.4.0
 async-timeout==1.1.0
 asyncio==3.4.3
 chardet==2.3.0
+docker==2.1.0
+docker-pycreds==0.2.1
 multidict==2.1.4
 packaging==16.8
 pyparsing==2.1.10
 python-engineio==1.2.3
 python-socketio==1.7.1
+requests==2.13.0
 six==1.10.0
+websocket-client==0.40.0
 websockets==3.2
 yarl==0.9.8

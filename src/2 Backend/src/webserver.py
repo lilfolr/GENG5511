@@ -1,3 +1,30 @@
+"""
+METHODS:
+
+METHOD_NAME (PARAMS) : RETURNS
+
+conntect
+disconnect
+
+create_node (node_id, firewall_type)
+destroy_node (node_id)
+connect_node_to_node (node_id, node_id, port(s))
+
+add_node_firewall_rule (node_id, firewall_rule) : rule_id
+remove_node_firewall_rule (node_id, firewall_rule_id)
+
+set_node_source_packets(node_id, source_type)
+
+run_simulation (seconds)
+stop_simulation
+
+save_results () : json results
+
+
+
+"""
+
+
 from aiohttp import web
 import socketio
 
