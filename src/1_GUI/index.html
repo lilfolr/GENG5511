@@ -11,6 +11,9 @@
             width: 75% !important;
             max-width: 500px;
         }
+        #loading_modal{
+            z-index: 2000 !important;
+        }
         
         #sidenav-overlay {
             display: none;
@@ -32,6 +35,7 @@
 </head>
 
 <body><div id='app'>
+
 <!-- File - Dropdown Structure -->
     <ul id="nav_dropdown_file" class="dropdown-content">
         <li><a href="#" id="nav_btn_file_new">New</a></li>
@@ -58,26 +62,28 @@
         <form id="form_node_new" action="#">
             <div class="row">
                 <div class="input-field col s12">
-                    <input placeholder="Node Name" required="required" id="node_name" type="text" class="validate">
+                    <input placeholder="Node Name" v-model="selected_node.label" required="required" id="node_name" type="text" class="validate">
                     <label for="node_name">Node Name</label>
                 </div>
                 <div class="input-field col s12">
-                    <select required="required" id="node_type" class="validate" multiple>
-                            <option value="S" selected>Server</option>
+                    <select required="required" data-placeholder="Month" v-multiselect="selected_node.type" id="node_type" class="validate" multiple>
+                            <option value="S">Server</option>
                             <option value="C">Client</option>
                         </select>
                     <label>Node Type</label>
                 </div>
                 <div class="input-field col s12">
-                    <button type="button" id="node_details_firewall" style="margin: 0 auto; display: table;" class="waves-effect waves-yellow btn-flat">View node firewall</button>
+                    <button type="button" v-bind:disabled="!selected_node.committed" id="node_details_firewall" style="margin: 0 auto; display: table;" class="waves-effect waves-yellow btn-flat">View node firewall</button>
                 </div>
                 <div class="input-field col s6">
-                    <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</a>
+                    <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</button>
                 </div>
                 <div class="input-field col s6">
-                    <button type="submit" id="node_details_btn" class="waves-effect waves-green btn-flat">Create</button>
+                    <button type="submit" id="node_details_btn" class="waves-effect waves-green btn-flat">
+                        <span v-if="selected_node.committed">Update</span>
+                        <span v-else>Create</span>
+                    </button>
                 </div>
-
             </div>
         </form>
     </ul>
@@ -103,6 +109,7 @@
             </ul>
         </div>
     </nav>
+
 <!-- Data table-->
     <div class="row">
         <div class="col s5" id="table">
@@ -124,7 +131,27 @@
         </div>
         <div class="col s7" id="firewall_network"></div>
     </div>
+
+    <!--LOADING MODAL-->
+    <div id="loading_modal" class="modal" style="text-align: center;">
+        <div class="modal-content" >
+            <div class="preloader-wrapper big active">
+                <div class="spinner-layer spinner-blue-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <p class="waves-effect waves-green ">Loading</p>
+        </div>
     </div>
+</div>
 
     <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -143,7 +170,6 @@
                     padding: 0,
                     width: 0
                 });
-                $('select').material_select();
                 $('.dropdown-button').dropdown({
                     inDuration: 300,
                     outDuration: 225,

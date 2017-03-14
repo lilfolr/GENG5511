@@ -8,19 +8,24 @@ socket.on('disconnect', function () {
     alert_msg('Socket Disconnected', 'info');
 });
 
+/**
+ * Possible methods include:
+ * create-node
+ * update-node
+ * add-connection
+ * remove-connection
+ *
+ * @param func
+ * @param data
+ * @param succ_func
+ */
+function websocket_run(func, data, succ_func){
 
-function process_msg(msg) {
-    switch (msg) {
-        case 'ack':
-            // Checking connection - getting ack        
-            if (msg == 'ack')
-                alert_msg("Connection established", 'info');
-            break;
-        default:
-            // Waiting for polling information
-            j = JSON.parse(msg);
-            var markup = "<tr><td>" + j.id + "</td><td>Server name</td><td>" + j.p_in + "</td><td>" + j.p_in_b + "</td><td>" + j.p_out + "</td><td>" + j.p_out_b + "</td></tr>";
-            $("#data_table").children().remove();
-            $("#data_table").append(markup);
-    }
+    $('#loading_modal').modal('open');
+    // Timeout to simluate network
+    setTimeout(function(){
+        console.log('Running '+func+' with data '+data);
+        $('#loading_modal').modal('close');
+        succ_func()
+    },2000)
 }

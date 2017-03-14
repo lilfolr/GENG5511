@@ -36,8 +36,10 @@ function alert_msg(msg, level, timeout) {
         Materialize.toast(msg, timeout || 5000, "blue");
     }
 }
+
 $(function() {
     $('.modal').modal();
+
 
     //CONSTANTS
     NODE_SPACING = 200;
@@ -48,34 +50,40 @@ $(function() {
         closeOnClick: false,
         draggable: false
     });
+    $('#loading_modal').modal({
+        dismissible: false
+    });
+    $("#node_type").material_select();
 
     // SETUP NETWORK
-    var nodeDetails, nodes, edgesArray, edges, network;
-    current_node_id = 1;
-    current_x = NODE_SPACING;
+    var nodeDetails, nodes, edges, network;
+    var current_node_id = 1;
+    var current_edge_id = 0;
+    var current_x = NODE_SPACING;
     
     app.$data.nodes= [{
         id: 0,
         label: 'Client 1',
         shape: 'circle',
-        type: 'C',
-        color: node_color(0, 1)
+        type: ['C'],
+        color: node_color(0, 1),
+        committed: true
     }, {
         id: 1,
         label: 'Server 1',
         shape: 'circle',
-        type: 'S',
-        color: node_color(1, 0)
+        type: ['S'],
+        color: node_color(1, 0),
+        committed: true
     }];
-	nodeDetails = app.$data.nodes
-    nodes = new vis.DataSet(app.$data.nodes);
+	nodeDetails = app.$data.nodes;
+    nodes = new vis.DataSet(nodeDetails);
 
-    current_edge_id = 0;
-    var edges = new vis.DataSet([{
+    edges = new vis.DataSet([{
         id: 0,
         from: 0,
         to: 1
-    }, ]);
+    }]);
 
     // create a network
     var container = document.getElementById('firewall_network');
@@ -85,7 +93,7 @@ $(function() {
     };
     var options = {
         "physics": {
-            "enabled": false,
+            "enabled": false
         },
         "edges": {
             "smooth": {
@@ -96,7 +104,7 @@ $(function() {
             "color": "black"
         }
     };
-    var network = new vis.Network(container, data, options);
+    network = new vis.Network(container, data, options);
 
     function fitAnimated() {
         var options = {
@@ -108,33 +116,27 @@ $(function() {
     }
 
     function load_details_bar(node_id) {
-        my_node = null;
-        type_array = [];
-        x = network.nodes;
-        my_node = nodeDetails[node_id]
+        var x = network.nodes;
+        var my_node = nodeDetails[node_id];
         if (my_node !== null) {
-            $("#node_name").val(my_node.label);
-            $("#node_type").val(my_node.type.split(','));
-            $("#node_type").material_select();
-            $("#node_details_btn").text("Save");
-            $("#node_details_firewall").prop('disabled', false);            
+            app.$data.selected_node['type']=my_node.type;
             show_side_nav();
         }
     }
 
-    function load_firewall_dialog() {
-        $('#firewall_modal').modal('open');
+    function load_firewall_dialog(node_id) {
+        websocket_run('get-firewall', node_id, function(){
+            $('#firewall_modal').modal('open');
+        });
     }
 
     $("#nav_btn_node_new").click(function() {
-        $("#node_name").val("");
-        $("#node_details_btn").text("Create");
-        $("#node_details_firewall").prop('disabled', true);
+        app.clear_selected_node();
         show_side_nav();
     });
     $("#nav_btn_node_del").click(function() {
         network.deleteSelected();
-    })
+    });
 
     connect_node_start = null;
     $("#nav_btn_node_connect").click(function() {
@@ -149,51 +151,64 @@ $(function() {
     $('#node_details_firewall').click(function(){
         if (network.getSelectedNodes().length == 1) {
             node_id = network.getSelectedNodes()[0];
-            load_firewall_dialog();
+            load_firewall_dialog(node_id);
         } else {
             alert_msg('Select a node first', 'warning');
         }
-    })
+    });
 
-    $("#form_node_new").submit(function() {
-        name = $("#node_name").val();
-        s = $("#node_type").val().includes('S');
-        c = $("#node_type").val().includes('C');
-        if ($("#node_details_btn").text() == 'Create') {
-            var newId = ++current_node_id;
-            current_x += NODE_SPACING;
-            node_to_add = {
+    $("#form_node_new").submit(function(e) {
+        e.preventDefault();
+        var name = app.$data.selected_node['label'];
+        var s = $("#node_type").val().includes('S');
+        var c = $("#node_type").val().includes('C');
+        if (!app.$data.selected_node['committed']) {
+            var newId = current_node_id+1;
+            websocket_run('create-node', newId, function(){
+                console.log('Creating node');
+                var newId = ++current_node_id;
+                current_x += NODE_SPACING;
+                node_to_add = {
                 id: newId,
-                label: name,
-                shape: 'circle',
-                color: node_color(s, c),
-                type: s ? c ? 'S,C' : 'S' : 'C',
-                x: current_x
-            };
-            nodeDetails.push(node_to_add)
-            nodes.add(node_to_add);
+                    label: name,
+                    shape: 'circle',
+                    color: node_color(s, c),
+                    type: s ? c ? ['S', 'C'] : ['S'] : ['C'],
+                    x: current_x,
+                    committed: true
+                };
+                nodeDetails.push(node_to_add);
+                nodes.add(node_to_add);
+            })
+
         } else {
-            var selectedNode = network.getSelectedNodes()[0];
-            nodes.update({
-                id: selectedNode,
-                label: name,
-                color: node_color(s, c),
+            var selectedNode = app.$data.selected_node;
+            var name = selectedNode['label'];   // Needs to be manually set to avoid race
+            var id = selectedNode['id'];        // Needs to be manually set to avoid race
+            websocket_run('update-node', id, function() {
+                nodes.update({
+                    id: id,
+                    label: name,
+                    color: node_color(s, c)
+                });
+                nodeDetails[id]['label'] = name;
+                nodeDetails[id]['type'] = s ? c ? ['S', 'C'] : ['S'] : ['C'];
+                network.unselectAll();
+                fitAnimated();
             });
-            nodeDetails[selectedNode] = {
-                label: name,
-                type: s ? c ? 'S,C' : 'S' : 'C',
-            };
-            network.unselectAll();
         }
         hide_side_nav();
-        $("#node_type").val('S');
-        $("#node_type").material_select();
-        $("#node_name").val("");
+        app.clear_selected_node();
         fitAnimated();
     });
 
     network.on("click", function(params) {
         if (params.nodes.length == 1) {
+            var x=nodeDetails[network.getSelectedNodes()[0]];
+            var vs =['color','id','label','shape','type','committed'];
+            for (var y=0;y<vs.length;y++){
+                app.$data.selected_node[vs[y]]=x[vs[y]];
+            }
             if (connect_node_start !== null) {
                 if (network.getSelectedNodes()[0] == connect_node_start) {
                     alert_msg("Can't connect node to self", "warning");
@@ -211,13 +226,15 @@ $(function() {
                     if (already_connected) {
                         alert_msg("Nodes already connected", "warning");
                     } else {
-                        new_edge = {
-                            id: ++current_edge_id,
-                            from: connect_node_start,
-                            to: network.getSelectedNodes()[0]
-                        }
-                        edges.add(new_edge);
-                        alert_msg("Connected nodes", "info");
+                        websocket_run('add-edge', [connect_node_start, network.getSelectedNodes()[0]], function(){
+                            new_edge = {
+                                id: ++current_edge_id,
+                                from: connect_node_start,
+                                to: network.getSelectedNodes()[0]
+                            };
+                            edges.add(new_edge);
+                            alert_msg("Connected nodes", "info");
+                        });
                     }
                     network.unselectAll();
                 }
@@ -226,6 +243,7 @@ $(function() {
                 load_details_bar(params.nodes[0]);
             }
         } else {
+            app.clear_selected_node();
             hide_side_nav();
         }
     });
@@ -233,6 +251,6 @@ $(function() {
 
     $("#btn_close_sideNav").click(function() {
         hide_side_nav();
-        $("#node_name").val("");
+        app.clear_selected_node();
     })
 });
