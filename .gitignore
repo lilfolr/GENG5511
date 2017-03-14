@@ -3,3 +3,5 @@ Program/.idea/*
 *.swp
 
 env/
+
+\.idea/
