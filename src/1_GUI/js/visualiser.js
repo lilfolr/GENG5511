@@ -67,6 +67,7 @@ $(function() {
         type: 'S',
         color: node_color(1, 0)
     }];
+	nodeDetails = app.$data.nodes
     nodes = new vis.DataSet(app.$data.nodes);
 
     current_edge_id = 0;

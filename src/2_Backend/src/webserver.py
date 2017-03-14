@@ -6,27 +6,26 @@ METHOD_NAME (PARAMS) : RETURNS
 conntect
 disconnect
 
-create_node (node_id, firewall_type)
-destroy_node (node_id)
-connect_node_to_node (node_id, node_id, port(s))
+create_node (node_id, firewall_type) : success
+destroy_node (node_id) : success
+connect_node_to_node (node_id, node_id, port(s)) : success
 
 add_node_firewall_rule (node_id, firewall_rule) : rule_id
-remove_node_firewall_rule (node_id, firewall_rule_id)
+remove_node_firewall_rule (node_id, firewall_rule_id) : success
 
-set_node_source_packets(node_id, source_type)
+set_node_source_packets(node_id, source_type, frequency, purity [1-% corrupt packets]) : success
 
-run_simulation (seconds)
-stop_simulation
+run_simulation (seconds) : success [done]
+stop_simulation : success
 
 save_results () : json results
 
-
-
 """
 
-
+from application import *
 from aiohttp import web
 import socketio
+base_index = '../../1_GUI/'
 
 sio = socketio.AsyncServer()
 app = web.Application()
@@ -34,7 +33,7 @@ sio.attach(app)
 
 async def index(request):
     """Serve the client-side application."""
-    with open('GUI/index.html') as f:
+    with open(base_index+'index.html') as f:
         return web.Response(text=f.read(), content_type='text/html')
 
 @sio.on('connect', namespace='')
@@ -50,8 +49,8 @@ async def message(sid, data):
 def disconnect(sid):
     print('disconnect ', sid)
 
-app.router.add_static('/css', 'GUI/css')
-app.router.add_static('/js', 'GUI/js')
+app.router.add_static('/css', base_index+'css')
+app.router.add_static('/js', base_index+'js')
 app.router.add_get('/', index)
 
 if __name__ == '__main__':
