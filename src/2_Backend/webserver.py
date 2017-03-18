@@ -22,10 +22,11 @@ save_results () : json results
 
 """
 
-from application import *
 import os
-from aiohttp import web
+
 import socketio
+from aiohttp import web
+from .application import *
 
 if os.name == 'nt':
     base_index = '..\\1_GUI\\'
