@@ -11,18 +11,31 @@
             width: 75% !important;
             max-width: 500px;
         }
-        #loading_modal{
+        #firewall_modal{
+            height: 85% !important;
+            max-height: 90% !important;
+            max-width: 70% !important;
+        }
+        
+        #loading_modal {
             z-index: 2000 !important;
         }
         
         #sidenav-overlay {
             display: none;
         }
+        
         #toast-container {
             top: auto !important;
             right: auto !important;
             bottom: 10%;
-            left:7%;  
+            left: 7%;
+        }
+        .pre {
+            background-color: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+            border-radius: 4px !important;
+            font-family: monospace, monospace;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
@@ -34,124 +47,155 @@
     </script>
 </head>
 
-<body><div id='app'>
+<body>
+    <div id='app'>
 
-<!-- File - Dropdown Structure -->
-    <ul id="nav_dropdown_file" class="dropdown-content">
-        <li><a href="#" id="nav_btn_file_new">New</a></li>
-        <li><a href="#" id="nav_btn_file_save">Save</a></li>
-        <li><a href="#" id="nav_btn_file_open">Open</a></li>
-    </ul>
-<!-- Manage Nodes - Dropdown Structure -->
-    <ul id="nav_dropdown_nodes" class="dropdown-content">
-        <li><a href="#" id="nav_btn_node_new">Create New</a></li>
-        <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
-        <li class="divider"></li>
-        <li><a href="#" id="nav_btn_node_connect">Connect Nodes</a></li>
-    </ul>
-<!--Details Side Bar -->
-    <ul id="slide-out" class="side-nav">
-        <li style="text-align: center;">
-            <a>
-                <h5>Node Details</h5>
-            </a>
-        </li>
-        <li>
-            <div class="divider"></div>
-        </li>
-        <form id="form_node_new" action="#">
-            <div class="row">
-                <div class="input-field col s12">
-                    <input placeholder="Node Name" v-model="selected_node.label" required="required" id="node_name" type="text" class="validate">
-                    <label for="node_name">Node Name</label>
-                </div>
-                <div class="input-field col s12">
-                    <select required="required" data-placeholder="Month" v-multiselect="selected_node.type" id="node_type" class="validate" multiple>
+        <!-- File - Dropdown Structure -->
+        <ul id="nav_dropdown_file" class="dropdown-content">
+            <li><a href="#" id="nav_btn_file_new">New</a></li>
+            <li><a href="#" id="nav_btn_file_save">Save</a></li>
+            <li><a href="#" id="nav_btn_file_open">Open</a></li>
+        </ul>
+        <!-- Manage Nodes - Dropdown Structure -->
+        <ul id="nav_dropdown_nodes" class="dropdown-content">
+            <li><a href="#" id="nav_btn_node_new">Create New</a></li>
+            <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="nav_btn_node_connect">Connect Nodes</a></li>
+        </ul>
+        <!--Details Side Bar -->
+        <ul id="slide-out" class="side-nav">
+            <li style="text-align: center;">
+                <a>
+                    <h5>Node Details</h5>
+                </a>
+            </li>
+            <li>
+                <div class="divider"></div>
+            </li>
+            <form id="form_node_new" action="#">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input placeholder="Node Name" v-model="selected_node.label" required="required" id="node_name" type="text" class="validate">
+                        <label for="node_name">Node Name</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <select required="required" data-placeholder="Month" v-multiselect="selected_node.type" id="node_type" class="validate" multiple>
                             <option value="S">Server</option>
                             <option value="C">Client</option>
                         </select>
-                    <label>Node Type</label>
-                </div>
-                <div class="input-field col s12">
-                    <button type="button" v-bind:disabled="!selected_node.committed" id="node_details_firewall" style="margin: 0 auto; display: table;" class="waves-effect waves-yellow btn-flat">View node firewall</button>
-                </div>
-                <div class="input-field col s6">
-                    <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</button>
-                </div>
-                <div class="input-field col s6">
-                    <button type="submit" id="node_details_btn" class="waves-effect waves-green btn-flat">
+                        <label>Node Type</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <button type="button" v-bind:disabled="!selected_node.committed" id="node_details_firewall" style="margin: 0 auto; display: table;"
+                            class="waves-effect waves-yellow btn-flat">View node firewall</button>
+                    </div>
+                    <div class="input-field col s6">
+                        <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</button>
+                    </div>
+                    <div class="input-field col s6">
+                        <button type="submit" id="node_details_btn" class="waves-effect waves-green btn-flat">
                         <span v-if="selected_node.committed">Update</span>
                         <span v-else>Create</span>
                     </button>
+                    </div>
+                </div>
+            </form>
+        </ul>
+
+        <!-- Firewall Modal -->
+        <div id="firewall_modal" class="modal modal-fixed-footer">
+            <div class="modal-content">
+                <h4>Firewall - {{selected_node.label}}</h4>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <select required="required" id="node_type" class="validate">
+                            <option value="IP">IPTables</option>
+                            <option value="PF">PF</option>
+                            <option value="NT">NTFTables</option>
+                        </select>
+                        <label for="node_name">Firewall Type</label>
+                    </div>
+                    <label style="padding-left: .75rem;">Current Rules</label>
+                        <div style="padding-left: .75rem;" ><pre class='pre'>-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT </pre></div>
+                    <div class="switch" style="padding-left: .75rem;">
+                        <label>Clear current rules?</label><br/><br/>
+                        <label>
+                          No
+                          <input type="checkbox"> <span class="lever"></span>
+                          Yes
+                        </label></div><br/>
+                        <label style="padding-left: .75rem;" for="textarea1">Add the following rules:</label>
+                    <div class="input-field col s12">
+                        <textarea id="textarea1" class="pre materialize-textarea"></textarea>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
+                    </div>
                 </div>
             </div>
-        </form>
-    </ul>
-
-<!-- Firewall Modal -->
-  <div id="firewall_modal" class="modal modal-fixed-footer">
-    <div class="modal-content">
-      <h4>Firewall - {{selected_node.label}}</h4>
-      <p>A bunch of text</p>
-    </div>
-    <div class="modal-footer">
-      <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
-    </div>
-  </div>
-<!-- Nav bar -->
-    <a data-activates="slide-out" id="side_bar" style="display: none"></a>
-    <nav class="black">
-        <div class="nav-wrapper">
-            <a href="#" class="brand-logo center">GENG5511 - Firewall Visualisation</a>
-            <ul id="nav-mobile" class="left hide-on-small-and-down">
-                <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_file">File<i class="material-icons right">arrow_drop_down</i></a></li>
-                <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_nodes">Manage Nodes<i class="material-icons right">arrow_drop_down</i></a></li>
-            </ul>
-        </div>
-    </nav>
-
-<!-- Data table-->
-    <div class="row">
-        <div class="col s5" id="table">
-            <table class="bordered highlight">
-                <thead>
-                    <tr>
-                        <th data-field="id">ID</th>
-                        <th data-field="name">Name</th>
-                        <th data-field="price">Packets In [T]</th>
-                        <th data-field="price">Packets In Blocked</th>
-                        <th data-field="price">Packets Out [T]</th>
-                        <th data-field="price">Packets Out Blocked</th>
-                    </tr>
-                </thead>
-                <tbody id='data_table'>
-
-                </tbody>
-            </table>
-        </div>
-        <div class="col s7" id="firewall_network"></div>
-    </div>
-
-    <!--LOADING MODAL-->
-    <div id="loading_modal" class="modal" style="text-align: center;">
-        <div class="modal-content" >
-            <div class="preloader-wrapper big active">
-                <div class="spinner-layer spinner-blue-only">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div><div class="gap-patch">
-                    <div class="circle"></div>
-                </div><div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
-                </div>
+            <div class="modal-footer">
+                <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat ">Update</a>
+                <a href="#" class="modal-action modal-close waves-effect waves-red btn-flat ">Close</a>
             </div>
         </div>
-        <div class="modal-footer">
-            <p class="waves-effect waves-green ">Loading</p>
+        <!-- Nav bar -->
+        <a data-activates="slide-out" id="side_bar" style="display: none"></a>
+        <nav class="black">
+            <div class="nav-wrapper">
+                <a href="#" class="brand-logo center">GENG5511 - Firewall Visualisation</a>
+                <ul id="nav-mobile" class="left hide-on-small-and-down">
+                    <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_file">File<i class="material-icons right">arrow_drop_down</i></a></li>
+                    <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_nodes">Manage Nodes<i class="material-icons right">arrow_drop_down</i></a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Data table-->
+        <div class="row">
+            <div class="col s5" id="table">
+                <table class="bordered highlight">
+                    <thead>
+                        <tr>
+                            <th data-field="id">ID</th>
+                            <th data-field="name">Name</th>
+                            <th data-field="price">Packets In [T]</th>
+                            <th data-field="price">Packets In Blocked</th>
+                            <th data-field="price">Packets Out [T]</th>
+                            <th data-field="price">Packets Out Blocked</th>
+                        </tr>
+                    </thead>
+                    <tbody id='data_table'>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="col s7" id="firewall_network"></div>
+        </div>
+
+        <!--LOADING MODAL-->
+        <div id="loading_modal" class="modal" style="text-align: center;">
+            <div class="modal-content">
+                <div class="preloader-wrapper big active">
+                    <div class="spinner-layer spinner-blue-only">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <p class="waves-effect waves-green ">Loading</p>
+            </div>
         </div>
     </div>
-</div>
 
     <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -162,8 +206,8 @@
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script type="text/javascript" src="js/websocket.js"></script>
     <script>
-        (function($) {
-            $(function() {
+        (function ($) {
+            $(function () {
                 $("select[required]").css({
                     display: "inline",
                     height: 0,
@@ -173,9 +217,9 @@
                 $('.dropdown-button').dropdown({
                     inDuration: 300,
                     outDuration: 225,
-                    hover: false,       // Activate on hover
-                    belowOrigin: true,  // Displays dropdown below the button
-                    alignment: 'right'  // Displays dropdown with edge aligned to the left of button
+                    hover: false, // Activate on hover
+                    belowOrigin: true, // Displays dropdown below the button
+                    alignment: 'right' // Displays dropdown with edge aligned to the left of button
                 });
             }); // End Document Ready
         })(jQuery); // End of jQuery name space

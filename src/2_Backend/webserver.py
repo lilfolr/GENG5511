@@ -26,7 +26,7 @@ import os
 
 import socketio
 from aiohttp import web
-from .application import *
+from application import *
 
 if os.name == 'nt':
     base_index = '..\\1_GUI\\'

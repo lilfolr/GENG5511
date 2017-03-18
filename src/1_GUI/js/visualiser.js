@@ -49,7 +49,7 @@ $(function() {
     $('#loading_modal').modal({
         dismissible: false
     });
-    $("#node_type").material_select();
+    $("select").material_select();
 
     // SETUP NETWORK
     var nodeDetails, nodes, edges, network;

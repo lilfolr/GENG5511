@@ -1,4 +1,4 @@
-from .docker_client import docker_client
+from docker_client import docker_client
 
 
 class backend(object):
