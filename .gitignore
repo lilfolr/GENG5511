@@ -5,3 +5,5 @@ Program/.idea/*
 env/
 
 \.idea/
+
+*.pyc
