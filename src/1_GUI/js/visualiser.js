@@ -116,7 +116,6 @@ $(function() {
     }
 
     function load_details_bar(node_id) {
-        var x = network.nodes;
         var my_node = nodeDetails[node_id];
         if (my_node !== null) {
             app.$data.selected_node['type']=my_node.type;
@@ -135,7 +134,12 @@ $(function() {
         show_side_nav();
     });
     $("#nav_btn_node_del").click(function() {
-        network.deleteSelected();
+        var selectedNode = app.$data.selected_node;
+        var id = selectedNode['id'];
+        websocket_run('delete-node', id, function() {
+            network.deleteSelected();
+            nodeDetails[id] = null;
+        });
     });
 
     connect_node_start = null;
@@ -226,11 +230,13 @@ $(function() {
                     if (already_connected) {
                         alert_msg("Nodes already connected", "warning");
                     } else {
+                        var from = connect_node_start;
+                        var to = network.getSelectedNodes()[0];
                         websocket_run('add-edge', [connect_node_start, network.getSelectedNodes()[0]], function(){
                             new_edge = {
                                 id: ++current_edge_id,
-                                from: connect_node_start,
-                                to: network.getSelectedNodes()[0]
+                                from: from,
+                                to: to
                             };
                             edges.add(new_edge);
                             alert_msg("Connected nodes", "info");
