@@ -40,10 +40,6 @@ function alert_msg(msg, level, timeout) {
 $(function() {
     $('.modal').modal();
 
-
-    //CONSTANTS
-    NODE_SPACING = 200;
-
     // SETUP COMPONENTS
     $('#side_bar').sideNav({
         edge: 'right',
@@ -59,8 +55,7 @@ $(function() {
     var nodeDetails, nodes, edges, network;
     var current_node_id = 1;
     var current_edge_id = 0;
-    var current_x = NODE_SPACING;
-    
+
     app.$data.nodes= [{
         id: 0,
         label: 'Client 1',
@@ -79,12 +74,12 @@ $(function() {
 	nodeDetails = app.$data.nodes;
     nodes = new vis.DataSet(nodeDetails);
 
-    edges = new vis.DataSet([{
+    app.$data.edges = [{
         id: 0,
         from: 0,
         to: 1
-    }]);
-
+    }];
+    edges = new vis.DataSet(app.$data.edges);
     // create a network
     var container = document.getElementById('firewall_network');
     var data = {
@@ -169,16 +164,13 @@ $(function() {
         if (!app.$data.selected_node['committed']) {
             var newId = current_node_id+1;
             websocket_run('create-node', newId, function(){
-                console.log('Creating node');
                 var newId = ++current_node_id;
-                current_x += NODE_SPACING;
-                node_to_add = {
+                var node_to_add = {
                 id: newId,
                     label: name,
                     shape: 'circle',
                     color: node_color(s, c),
                     type: s ? c ? ['S', 'C'] : ['S'] : ['C'],
-                    x: current_x,
                     committed: true
                 };
                 nodeDetails.push(node_to_add);
@@ -239,6 +231,7 @@ $(function() {
                                 to: to
                             };
                             edges.add(new_edge);
+                            app.$data.edges.push(new_edge);
                             alert_msg("Connected nodes", "info");
                         });
                     }
