@@ -3,7 +3,7 @@ python:
   - "3.5"
   - "3.6"
 install:
-  - pip install -r src\2_Backend\requirements.txt
+  - pip install -r src/2_Backend/requirements.txt
 script:
   - cd src
   - cd 2_Backend
