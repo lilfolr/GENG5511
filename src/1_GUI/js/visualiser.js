@@ -55,7 +55,7 @@ $(function() {
         $(this).val(function(index, old) { return old.replace(/[^0-9]/g, '') + '%'; });
     });
     // SETUP NETWORK
-    var nodeDetails, nodes, edges, network;
+    var nodeDetails, nodes, edges;
     var current_node_id = 1;
     var current_edge_id = 0;
 
@@ -133,29 +133,6 @@ $(function() {
         });
     }
 
-    $("#nav_btn_node_new").click(function() {
-        app.clear_selected_node();
-        show_side_nav();
-    });
-    $("#nav_btn_node_del").click(function() {
-        var selectedNode = app.$data.selected_node;
-        var id = selectedNode['id'];
-        websocket_run('delete-node', id, function() {
-            network.deleteSelected();
-            nodeDetails[id] = null;
-        });
-    });
-
-    connect_node_start = null;
-    $("#nav_btn_node_connect").click(function() {
-        if (network.getSelectedNodes().length == 1) {
-            connect_node_start = network.getSelectedNodes()[0];
-            alert_msg('Select node to connect to', 'info');
-        } else {
-            alert_msg('Select a node first', 'warning');
-        }
-    });
-
     $('#node_details_firewall').click(function(){
         if (network.getSelectedNodes().length == 1) {
             node_id = network.getSelectedNodes()[0];
@@ -223,6 +200,7 @@ $(function() {
             for (var y=0;y<vs.length;y++){
                 app.$data.selected_node[vs[y]]=x[vs[y]];
             }
+            var connect_node_start = app.$data.connect_node_start;
             if (connect_node_start !== null) {
                 if (network.getSelectedNodes()[0] == connect_node_start) {
                     alert_msg("Can't connect node to self", "warning");
@@ -255,7 +233,7 @@ $(function() {
                     }
                     network.unselectAll();
                 }
-                connect_node_start = null;
+                app.$data.connect_node_start = null;
             } else {
                 load_details_bar(params.nodes[0]);
             }

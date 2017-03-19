@@ -6,7 +6,12 @@
         .dropdown-content li>a {
             color: #000000 !important;
         }
-        
+        .el-menu--dark {
+            background-color: #000 !important;
+        }
+        .el-menu--horizontal.el-menu--dark .el-submenu__title:hover {
+            background-color: #000 !important;
+        }
         .modal {
             width: 75% !important;
             max-width: 500px;
@@ -41,28 +46,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="css/vis.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
     <script type="text/javascript" src="js/vis.min.js"></script>
     <script>
-        var app; // vuejs app
+        var app;        // vuejs app
+        var network     // visjs network
     </script>
 </head>
 
 <body>
     <div id='app'>
 
-        <!-- File - Dropdown Structure -->
-        <ul id="nav_dropdown_file" class="dropdown-content">
-            <li><a href="#" id="nav_btn_file_new">New</a></li>
-            <li><a href="#" id="nav_btn_file_save">Save</a></li>
-            <li><a href="#" id="nav_btn_file_open">Open</a></li>
-        </ul>
-        <!-- Manage Nodes - Dropdown Structure -->
-        <ul id="nav_dropdown_nodes" class="dropdown-content">
-            <li><a href="#" id="nav_btn_node_new">Create New</a></li>
-            <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
-            <li class="divider"></li>
-            <li><a href="#" id="nav_btn_node_connect">Connect Nodes</a></li>
-        </ul>
         <!--Details Side Bar -->
         <ul id="slide-out" class="side-nav">
             <li style="text-align: center;">
@@ -191,16 +185,18 @@
         </div>
 
         <!-- Nav bar -->
-        <a data-activates="slide-out" id="side_bar" style="display: none"></a>
-        <nav class="black">
-            <div class="nav-wrapper">
-                <a href="#" class="brand-logo center">GENG5511 - Firewall Visualisation</a>
-                <ul id="nav-mobile" class="left hide-on-small-and-down">
-                    <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_file">File<i class="material-icons right">arrow_drop_down</i></a></li>
-                    <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_nodes">Manage Nodes<i class="material-icons right">arrow_drop_down</i></a></li>
-                </ul>
-            </div>
-        </nav>
+       
+        <div id="navbar">
+            <el-menu mode="horizontal" theme="dark" @select="handleSelect">
+              <el-menu-item index="1">GENG5511 - Firewall Visualisation</el-menu-item>
+              <el-submenu index="2">
+                <template slot="title">Manage Nodes</template>
+                <el-menu-item index="2-1">Create New</el-menu-item>
+                <el-menu-item index="2-2">Delete Selected</el-menu-item>
+                <el-menu-item index="2-3">Connect Nodes</el-menu-item>
+            </el-submenu>
+            </el-menu>
+        </div>
 
         <!-- Data table-->
         <div class="row">
@@ -252,6 +248,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <script type="text/javascript" src="js/app.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script type="text/javascript" src="js/websocket.js"></script>
