@@ -11,7 +11,7 @@
             width: 75% !important;
             max-width: 500px;
         }
-        #firewall_modal{
+        .modal-large{
             height: 85% !important;
             max-height: 90% !important;
             max-width: 70% !important;
@@ -88,7 +88,11 @@
                     </div>
                     <div class="input-field col s12">
                         <button type="button" v-bind:disabled="!selected_node.committed" id="node_details_firewall" style="margin: 0 auto; display: table;"
-                            class="waves-effect waves-yellow btn-flat">View node firewall</button>
+                            class="waves-effect waves-yellow btn-flat">Edit node firewall</button>
+                    </div>
+                    <div class="input-field col s12">
+                        <button type="button" v-bind:disabled="!selected_node.committed" id="node_details_packets" style="margin: 0 auto; display: table;"
+                            class="waves-effect waves-yellow btn-flat">Edit Packet Simulation</button>
                     </div>
                     <div class="input-field col s6">
                         <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</button>
@@ -104,7 +108,7 @@
         </ul>
 
         <!-- Firewall Modal -->
-        <div id="firewall_modal" class="modal modal-fixed-footer">
+        <div id="firewall_modal" class="modal modal-fixed-footer modal-large">
             <div class="modal-content">
                 <h4>Firewall - {{selected_node.label}}</h4>
                 <div class="row">
@@ -140,6 +144,52 @@
                 <a href="#" class="modal-action modal-close waves-effect waves-red btn-flat ">Close</a>
             </div>
         </div>
+
+        <!-- Packet Modal -->
+        <div id="packet_modal" class="modal modal-fixed-footer modal-large">
+            <div class="modal-content">
+                <h4>Packet Generation - {{selected_node.label}}</h4>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <select required="required" id="node_type" class="validate">
+                           <option v-bind:value="item" v-for="item in packet_options.Network_Layer">{{item}}</option>
+                        </select>
+                        <label for="node_name">Network Protocol</label>
+                    </div>
+                    <div class="input-field col s4">
+                         <input placeholder="Source Port" id="source_port" type="number" class="validate" min=0>
+                        <label for="node_name">Source Port</label>
+                    </div>
+                    <div class="input-field col s4">
+                        <input placeholder="Destination Port" id="dest_port" type="number" class="validate" min=0>
+                        <label for="node_name">Destination Port</label>
+                    </div>
+                    <div class="input-field col s4">
+                        <input placeholder="TTL [Hops]" id="TTL" type="number" class="validate" min=0>
+                        <label for="node_name">Time to live</label>
+                    </div>                    
+                    <div class="input-field col s6">
+                        <select required="required" id="node_type" class="validate">
+                           <option v-bind:value="item" v-for="item in packet_options.Data_Type">{{item}}</option>
+                        </select>
+                        <label for="node_name">Application Protocol</label>
+                    </div>
+                    <div class="input-field col s6">
+                        <input placeholder="% Corrupt packets" id="TTL" class="percent validate" type="text" >
+                        <label for="node_name">Corrupt Packets</label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat ">Update</a>
+                <a href="#" class="modal-action modal-close waves-effect waves-red btn-flat ">Close</a>
+            </div>
+        </div>
+
         <!-- Nav bar -->
         <a data-activates="slide-out" id="side_bar" style="display: none"></a>
         <nav class="black">

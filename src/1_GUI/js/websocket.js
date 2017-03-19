@@ -27,5 +27,5 @@ function websocket_run(func, data, succ_func){
         console.log('Running '+func+' with data '+data);
         $('#loading_modal').modal('close');
         succ_func()
-    },2000)
+    },200)
 }

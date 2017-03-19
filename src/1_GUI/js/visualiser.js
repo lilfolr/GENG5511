@@ -51,6 +51,9 @@ $(function() {
     });
     $("select").material_select();
 
+    $(':input.Percent').change(function() {
+        $(this).val(function(index, old) { return old.replace(/[^0-9]/g, '') + '%'; });
+    });
     // SETUP NETWORK
     var nodeDetails, nodes, edges, network;
     var current_node_id = 1;
@@ -124,6 +127,12 @@ $(function() {
         });
     }
 
+    function load_packet_dialog(node_id) {
+        websocket_run('get-packet_gen', node_id, function(){
+            $('#packet_modal').modal('open');
+        });
+    }
+
     $("#nav_btn_node_new").click(function() {
         app.clear_selected_node();
         show_side_nav();
@@ -151,6 +160,15 @@ $(function() {
         if (network.getSelectedNodes().length == 1) {
             node_id = network.getSelectedNodes()[0];
             load_firewall_dialog(node_id);
+        } else {
+            alert_msg('Select a node first', 'warning');
+        }
+    });
+
+    $('#node_details_packets').click(function(){
+        if (network.getSelectedNodes().length == 1) {
+            node_id = network.getSelectedNodes()[0];
+            load_packet_dialog(node_id);
         } else {
             alert_msg('Select a node first', 'warning');
         }

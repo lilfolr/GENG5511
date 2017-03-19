@@ -23,7 +23,22 @@ app = new Vue({
             committed: false
         },
         nodes: [],
-        edges: []
+        edges: [],
+        packet_options:{
+            'Network_Layer': [
+                'TCP/IP',
+                'UDP/IP',
+                'ICMP'
+            ],
+            'Data_Type':[
+                'HTTP',
+                'HTTPS',
+                'FTP',
+                'SMTP',
+                'DNS',
+                'DHCP'    
+            ]
+        }
     },
 
     mounted : function()
