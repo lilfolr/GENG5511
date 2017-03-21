@@ -46,9 +46,6 @@ $(function() {
         closeOnClick: false,
         draggable: false
     });
-    $('#loading_modal').modal({
-        dismissible: false
-    });
     $("select").material_select();
 
     $(':input.Percent').change(function() {
@@ -127,12 +124,6 @@ $(function() {
         });
     }
 
-    function load_packet_dialog(node_id) {
-        websocket_run('get-packet_gen', node_id, function(){
-            $('#packet_modal').modal('open');
-        });
-    }
-
     $('#node_details_firewall').click(function(){
         if (network.getSelectedNodes().length == 1) {
             node_id = network.getSelectedNodes()[0];
@@ -142,14 +133,7 @@ $(function() {
         }
     });
 
-    $('#node_details_packets').click(function(){
-        if (network.getSelectedNodes().length == 1) {
-            node_id = network.getSelectedNodes()[0];
-            load_packet_dialog(node_id);
-        } else {
-            alert_msg('Select a node first', 'warning');
-        }
-    });
+ 
 
     $("#form_node_new").submit(function(e) {
         e.preventDefault();
