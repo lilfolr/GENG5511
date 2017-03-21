@@ -25,6 +25,12 @@ app = new Vue({
             packet_simulation:{
                 network_protocol: "",
                 application_protocol: ""
+            },
+            firewall:{
+                type: "",
+                current_rules: "-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT ",
+                clear_current: "Clear",
+                new_rules: ""
             }
         },
         nodes: [],
@@ -55,12 +61,19 @@ app = new Vue({
                 }
             },
             'Application_Layer':[
-            'HTTP',
-            'HTTPS',
-            'FTP',
-            'SMTP',
-            'DNS',
-            'DHCP'    
+                'HTTP',
+                'HTTPS',
+                'FTP',
+                'SMTP',
+                'DNS',
+                'DHCP'    
+            ]
+        },
+        firewall_options:{
+            'type':[
+                'IPTables',
+                'PF',
+                'NTFTables' 
             ]
         },
         loading:false,

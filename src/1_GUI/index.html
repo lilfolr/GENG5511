@@ -16,42 +16,22 @@
             width: 30% !important;
             min-width: 450px;
         }
-        .modal {
-            width: 75% !important;
-            max-width: 500px;
-        }
-        .modal-large{
-            height: 85% !important;
-            max-height: 90% !important;
-            max-width: 70% !important;
-        }
-        
-        #loading_modal {
-            z-index: 2000 !important;
-        }
-        
-        #sidenav-overlay {
-            display: none;
-        }
-        
-        #toast-container {
-            top: auto !important;
-            right: auto !important;
-            bottom: 10%;
-            left: 7%;
-        }
-        .pre {
+        .code {
             background-color: #f5f5f5 !important;
             border: 1px solid #ccc !important;
             border-radius: 4px !important;
             font-family: monospace, monospace;
+            line-height: initial !important;
         }
-        #side_nav{
-            position: absolute;
-            right: 0;
-            float: right;
-            top: 58px;
-            min-width:165px;
+        .firewall_dialog > .el-dialog--small{
+            min-width: 700px;
+        }
+        #side_nav{ 
+            position: absolute; 
+            right: 0; 
+            float: right; 
+            top: 58px; 
+            min-width:165px; 
         }
     </style>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -66,78 +46,8 @@
 
 <body style="margin: 0;">
     <div id='app'>
-        <!-- Firewall Modal 
-        <div id="firewall_modal" class="modal modal-fixed-footer modal-large">
-            <div class="modal-content">
-                <h4>Firewall - {{selected_node.label}}</h4>
-                <div class="row">
-                    <div class="input-field col s12">
-                        <select required="required" id="node_type" class="validate">
-                            <option value="IP">IPTables</option>
-                            <option value="PF">PF</option>
-                            <option value="NT">NTFTables</option>
-                        </select>
-                        <label for="node_name">Firewall Type</label>
-                    </div>
-                    <label style="padding-left: .75rem;">Current Rules</label>
-                        <div style="padding-left: .75rem;" ><pre class='pre'>-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT </pre></div>
-                    <div class="switch" style="padding-left: .75rem;">
-                        <label>Clear current rules?</label><br/><br/>
-                        <label>
-                          No
-                          <input type="checkbox"> <span class="lever"></span>
-                          Yes
-                        </label></div><br/>
-                        <label style="padding-left: .75rem;" for="textarea1">Add the following rules:</label>
-                    <div class="input-field col s12">
-                        <textarea id="textarea1" class="pre materialize-textarea"></textarea>
-                    </div>
+        
 
-                    <div class="input-field col s12">
-                        <input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat ">Update</a>
-                <a href="#" class="modal-action modal-close waves-effect waves-red btn-flat ">Close</a>
-            </div>
-        </div>-->
-
-        <!-- Packet Modal -->
-        <el-dialog :title="'Packet Generation '+selected_node.label" v-model="form_visible.packet">
-          <el-form>
-            <el-form-item label="Network Layer">
-                <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
-                    <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="Application Layer">
-                <el-select v-model="selected_node.packet_simulation.application_protocol" placeholder="Application Protocol">
-                    <el-option v-for="item in packet_options.Application_Layer" :key="item" :label="item" :value="item"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="Source Port">
-                <el-input-number v-model="selected_node.packet_simulation.source_port" :min="1" :max="65535"></el-input-number>
-            </el-form-item>
-            <el-form-item label="Destination Port">
-                <el-input-number v-model="selected_node.packet_simulation.dest_port" :min="1" :max="65535"></el-input-number>
-            </el-form-item>
-            <el-form-item label="">
-            <div class="block">
-                <span class="demonstration">Time to live [Hops]</span>
-                 <el-input-number v-model="selected_node.packet_simulation.ttl" :min="1" :max="20"></el-input-number>
-            </div>
-            <div class="block">
-                <span class="demonstration">Default value</span>
-                <el-slider v-model="selected_node.packet_simulation.corrupt"></el-slider>  
-            </div>
-          </el-form>
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="form_visible.packet = false">Cancel</el-button>
-            <el-button type="primary" @click="form_visible.packet = false">Confirm</el-button>
-          </span>
-        </el-dialog>
 
         <!-- Nav bar -->
         <div id="navbar">
@@ -201,6 +111,69 @@
           </el-menu-item>
       </el-submenu>
     </el-menu>
+
+<!-- Firewall Modal -->
+        <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" class="firewall_dialog">
+          <el-form>
+            <el-form-item label="Firewall Type">
+                <el-select v-model="selected_node.firewall.type" placeholder="Firewall Type">
+                    <el-option v-for="item in firewall_options.type" :key="item" :label="item" :value="item"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="Current Rules:">
+            <el-input class="code" readonly type="textarea" autosize placeholder="Please input" v-html="selected_node.firewall.current_rules">
+            </el-input>
+            </el-form-item>
+            <el-radio-group v-model="selected_node.firewall.clear_current">
+              <el-radio-button label="Clear"></el-radio-button>
+              <el-radio-button label="Append"></el-radio-button>
+            </el-radio-group>
+            <el-form-item label="Add rules:">
+              <el-input class="code" type="textarea" autosize placeholder="Rules here" v-model="selected_node.firewall.new_rules">
+              </el-input>
+            </el-form-item>
+          </el-form>  
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="form_visible.firewall = false">Cancel</el-button>
+            <el-button type="primary" @click="form_visible.firewall = false">Confirm</el-button>
+          </span>
+        </el-dialog>
+
+        <!-- Packet Modal -->
+        <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet">
+          <el-form>
+            <el-form-item label="Network Layer">
+                <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
+                    <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="Application Layer">
+                <el-select v-model="selected_node.packet_simulation.application_protocol" placeholder="Application Protocol">
+                    <el-option v-for="item in packet_options.Application_Layer" :key="item" :label="item" :value="item"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="Source Port">
+                <el-input-number v-model="selected_node.packet_simulation.source_port" :min="1" :max="65535"></el-input-number>
+            </el-form-item>
+            <el-form-item label="Destination Port">
+                <el-input-number v-model="selected_node.packet_simulation.dest_port" :min="1" :max="65535"></el-input-number>
+            </el-form-item>
+            <el-form-item label="">
+            <div class="block">
+                <span class="demonstration">Time to live [Hops]</span>
+                 <el-input-number v-model="selected_node.packet_simulation.ttl" :min="1" :max="20"></el-input-number>
+            </div>
+            <div class="block">
+                <span class="demonstration">Default value</span>
+                <el-slider v-model="selected_node.packet_simulation.corrupt"></el-slider>  
+            </div>
+          </el-form>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="form_visible.packet = false">Cancel</el-button>
+            <el-button type="primary" @click="form_visible.packet = false">Confirm</el-button>
+          </span>
+        </el-dialog>
+    
     </div>
 </div>
 
@@ -213,25 +186,6 @@
     <script type="text/javascript" src="js/app.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script type="text/javascript" src="js/websocket.js"></script>
-    <script>
-        (function ($) {
-            $(function () {
-                $("select[required]").css({
-                    display: "inline",
-                    height: 0,
-                    padding: 0,
-                    width: 0
-                });
-                $('.dropdown-button').dropdown({
-                    inDuration: 300,
-                    outDuration: 225,
-                    hover: false, // Activate on hover
-                    belowOrigin: true, // Displays dropdown below the button
-                    alignment: 'right' // Displays dropdown with edge aligned to the left of button
-                });
-            }); // End Document Ready
-        })(jQuery); // End of jQuery name space
-    </script>
 </body>
 
 </html>
