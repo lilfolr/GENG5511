@@ -20,7 +20,7 @@ app = new Vue({
             id:-1,
             label:"",
             shape:"",
-            type: ['S'],
+            type: "",
             committed: false,
             packet_simulation:{
                 network_protocol: "",
@@ -131,14 +131,48 @@ app = new Vue({
                 id:-1,
                 label:"",
                 shape:"",
-                type: ['S'],
-                committed: false
+                type: "",
+                committed: false,
+                packet_simulation:{
+                    network_protocol: "",
+                    application_protocol: ""
+                },
+                firewall:{
+                    type: "",
+                    current_rules: "-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT ",
+                    clear_current: "Clear",
+                    new_rules: ""
+                }
+            }
+        },
+        close_side_bar: function(){
+            child=null;
+            for (var i=0;i<app.$children.length;i++){
+                if (app.$children[i].$el.id=="side_nav_el"){
+                    child = app.$children[i];
+                    break;
+                }
+            }
+            if (child != null){
+                child.$data.openedMenus=[]
+            }
+        },
+        open_side_bar: function(){
+            child=null;
+            for (var i=0;i<app.$children.length;i++){
+                if (app.$children[i].$el.id=="side_nav_el"){
+                    child = app.$children[i];
+                    break;
+                }
+            }
+            if (child != null){
+                child.$data.openedMenus=["1"];
             }
         },
         handleSelect: function(key, keyPath) {
             if (key=="2-1"){
                 this.clear_selected_node();
-                show_side_nav();
+                this.open_side_bar();
             }
             else if (key=="2-2"){
                 var selectedNode = this.selected_node;
@@ -205,6 +239,58 @@ app = new Vue({
                         app.$data.form_visible.firewall=true;
                     });
                 }
-            }
+            },
+        create_node: function(){
+            var newId = current_node_id+1;
+            var name = this.selected_node.label;
+            var type = this.selected_node.type;
+            var color = type=="S"?"#ff7b7b":"#7dff7b";
+            var nodeDetails = this.nodes;
+            websocket_run('create-node', newId, function(){
+                var newId = ++current_node_id;
+                var node_to_add = {
+                    id: newId,
+                    label: name,
+                    shape: 'circle',
+                    color: color,
+                    type: type,
+                    committed: true
+                };
+                nodeDetails.push(node_to_add);
+                nodes.add(node_to_add);
+                network.fit({
+                    animation: {
+                        easingFunction: "easeInQuad"
+                    }
+                });
+            });
+        },
+        update_node: function() {
+            var selectedNode = this.selected_node;
+            var name = selectedNode.label;   // Needs to be manually set to avoid race
+            var id = selectedNode.id;        // Needs to be manually set to avoid race
+            var type = selected_node.type;
+            var color = type=="S"?"#ff7b7b":"#7dff7b";
+            websocket_run('update-node', id, function() {
+                nodes.update({
+                    id: id,
+                    label: name,
+                    color: color
+                });
+                nodeDetails[id]['label'] = name;
+                nodeDetails[id]['type'] = selectedNode.type;
+                network.unselectAll();
+                network.fit({
+                    animation: {
+                        easingFunction: "easeInQuad"
+                    }
+                });
+            });
+            network.fit({
+                    animation: {
+                        easingFunction: "easeInQuad"
+                    }
+                });
         }
-    });
+    },
+});

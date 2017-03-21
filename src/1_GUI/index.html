@@ -81,7 +81,7 @@
 
         <!-- SIDE_NAV -->
         <div id="side_nav">
-        <el-menu mode="vertical" default-active="2" class="el-menu-vertical-demo" theme="dark">
+        <el-menu mode="vertical" id="side_nav_el" default-active="2" class="el-menu-vertical-demo" theme="dark">
           <el-submenu index="1">
           <template slot="title"><i class="el-icon-share"></i>Node Details</template>
             <el-menu-item-group title="Node Name">
@@ -94,20 +94,20 @@
                   </el-select>
               </el-menu-item>
           </el-menu-item-group>
-          <el-menu-item-group title="Firewall">
+          <el-menu-item-group title="Firewall" v-if="selected_node.committed">
           <el-menu-item index="1-4">
             <el-button type="default" :disabled="!selected_node.committed" @click="load_firewall_dialog">Edit Node Firewall</el-button>
           </el-menu-item>
           </el-menu-item-group>
-          <el-menu-item-group title="Packets">
+          <el-menu-item-group title="Packets" v-if="selected_node.committed">
           <el-menu-item index="1-5">
             <el-button type="default" :disabled="!selected_node.committed" @click="load_packet_dialog">Edit Packet Simulation</el-button>
           </el-menu-item>
           </el-menu-item-group>
           <el-menu-item-group title="Save">
           <el-menu-item index="1-5">
-            <el-button type="primary" v-if="selected_node.committed">Update</el-button>
-            <el-button type="primary" v-else>Create</el-button>
+            <el-button type="primary" @click="update_node" v-if="selected_node.committed">Update</el-button>
+            <el-button type="primary" @click="create_node" v-else >Create</el-button>
           </el-menu-item>
       </el-submenu>
     </el-menu>
@@ -173,7 +173,7 @@
             <el-button type="primary" @click="form_visible.packet = false">Confirm</el-button>
           </span>
         </el-dialog>
-    
+
     </div>
 </div>
 

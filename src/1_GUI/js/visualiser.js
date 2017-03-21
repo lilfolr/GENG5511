@@ -1,18 +1,3 @@
-side_nav_open = false;
-
-function show_side_nav() {
-    if (!side_nav_open) {
-        $('#side_bar').sideNav('show');
-        side_nav_open = true;
-    }
-}
-
-function hide_side_nav() {
-    if (side_nav_open) {
-        $('#side_bar').sideNav('hide');
-        side_nav_open = false;
-    }
-}
 
 function node_color(is_server, is_client) {
     if (is_server) {
@@ -36,38 +21,26 @@ function alert_msg(msg, level, timeout) {
         Materialize.toast(msg, timeout || 5000, "blue");
     }
 }
-
+var current_node_id = 1;
+var current_edge_id = 0;
+var nodes
+var edges
 $(function() {
-    $('.modal').modal();
-
-    // SETUP COMPONENTS
-    $('#side_bar').sideNav({
-        edge: 'right',
-        closeOnClick: false,
-        draggable: false
-    });
-    $("select").material_select();
-
-    $(':input.Percent').change(function() {
-        $(this).val(function(index, old) { return old.replace(/[^0-9]/g, '') + '%'; });
-    });
     // SETUP NETWORK
-    var nodeDetails, nodes, edges;
-    var current_node_id = 1;
-    var current_edge_id = 0;
+    var nodeDetails;
 
     app.$data.nodes= [{
         id: 0,
         label: 'Client 1',
         shape: 'circle',
-        type: ['C'],
+        type: "C",
         color: node_color(0, 1),
         committed: true
     }, {
         id: 1,
         label: 'Server 1',
         shape: 'circle',
-        type: ['S'],
+        type: "S",
         color: node_color(1, 0),
         committed: true
     }];
@@ -114,7 +87,7 @@ $(function() {
         var my_node = nodeDetails[node_id];
         if (my_node !== null) {
             app.$data.selected_node['type']=my_node.type;
-            show_side_nav();
+            app.open_side_bar();
         }
     }
 
@@ -137,44 +110,7 @@ $(function() {
 
     $("#form_node_new").submit(function(e) {
         e.preventDefault();
-        var name = app.$data.selected_node['label'];
-        var s = $("#node_type").val().includes('S');
-        var c = $("#node_type").val().includes('C');
-        if (!app.$data.selected_node['committed']) {
-            var newId = current_node_id+1;
-            websocket_run('create-node', newId, function(){
-                var newId = ++current_node_id;
-                var node_to_add = {
-                id: newId,
-                    label: name,
-                    shape: 'circle',
-                    color: node_color(s, c),
-                    type: s ? c ? ['S', 'C'] : ['S'] : ['C'],
-                    committed: true
-                };
-                nodeDetails.push(node_to_add);
-                nodes.add(node_to_add);
-            })
-
-        } else {
-            var selectedNode = app.$data.selected_node;
-            var name = selectedNode['label'];   // Needs to be manually set to avoid race
-            var id = selectedNode['id'];        // Needs to be manually set to avoid race
-            websocket_run('update-node', id, function() {
-                nodes.update({
-                    id: id,
-                    label: name,
-                    color: node_color(s, c)
-                });
-                nodeDetails[id]['label'] = name;
-                nodeDetails[id]['type'] = s ? c ? ['S', 'C'] : ['S'] : ['C'];
-                network.unselectAll();
-                fitAnimated();
-            });
-        }
-        hide_side_nav();
-        app.clear_selected_node();
-        fitAnimated();
+        
     });
 
     network.on("click", function(params) {
@@ -223,13 +159,7 @@ $(function() {
             }
         } else {
             app.clear_selected_node();
-            hide_side_nav();
+            app.close_side_bar()
         }
     });
-
-
-    $("#btn_close_sideNav").click(function() {
-        hide_side_nav();
-        app.clear_selected_node();
-    })
 });
