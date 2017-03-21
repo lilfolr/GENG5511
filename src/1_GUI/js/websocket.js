@@ -35,5 +35,5 @@ function websocket_run(func, data, succ_func){
         console.log('Running '+func+' with data '+data);
     	app.$data.loading=false;
         succ_func()
-    },2000)
+    },1000)
 }

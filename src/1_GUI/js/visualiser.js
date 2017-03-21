@@ -70,6 +70,9 @@ $(function() {
                 "roundness": 0
             },
             "color": "black"
+        },
+        "interaction":{
+            "zoomView": false
         }
     };
     network = new vis.Network(container, data, options);

@@ -23,9 +23,6 @@
             font-family: monospace, monospace;
             line-height: initial !important;
         }
-        .firewall_dialog > .el-dialog--small{
-            min-width: 700px;
-        }
         #side_nav{ 
             position: absolute; 
             right: 0; 
@@ -47,8 +44,6 @@
 <body style="margin: 0;">
     <div id='app'>
         
-
-
         <!-- Nav bar -->
         <div id="navbar">
             <el-menu mode="horizontal" theme="dark" @select="handleSelect">
@@ -113,7 +108,7 @@
     </el-menu>
 
 <!-- Firewall Modal -->
-        <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" class="firewall_dialog">
+        <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" size="large">
           <el-form>
             <el-form-item label="Firewall Type">
                 <el-select v-model="selected_node.firewall.type" placeholder="Firewall Type">
@@ -140,7 +135,7 @@
         </el-dialog>
 
         <!-- Packet Modal -->
-        <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet">
+        <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="large">
           <el-form>
             <el-form-item label="Network Layer">
                 <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
@@ -153,19 +148,27 @@
                 </el-select>
             </el-form-item>
             <el-form-item label="Source Port">
-                <el-input-number v-model="selected_node.packet_simulation.source_port" :min="1" :max="65535"></el-input-number>
+              <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.source_port">
+                <template slot="prepend">#</template>
+              </el-input>
             </el-form-item>
             <el-form-item label="Destination Port">
-                <el-input-number v-model="selected_node.packet_simulation.dest_port" :min="1" :max="65535"></el-input-number>
+              <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.dest_port">
+                <template slot="prepend">#</template>
+              </el-input>
             </el-form-item>
             <el-form-item label="">
             <div class="block">
-                <span class="demonstration">Time to live [Hops]</span>
-                 <el-input-number v-model="selected_node.packet_simulation.ttl" :min="1" :max="20"></el-input-number>
+                <span class="demonstration">Time to live </span>
+                <el-input placeholder="Hops" v-model="selected_node.packet_simulation.ttl">
+                <template slot="prepend">#</template>
+              </el-input>
             </div>
             <div class="block">
-                <span class="demonstration">Default value</span>
-                <el-slider v-model="selected_node.packet_simulation.corrupt"></el-slider>  
+                <span class="demonstration">% Corrupt packets</span>
+                <el-input placeholder="Corrupt %" v-model="selected_node.packet_simulation.corrupt">
+                  <template slot="append">%</template>
+                </el-input>
             </div>
           </el-form>
           <span slot="footer" class="dialog-footer">
@@ -180,7 +183,6 @@
 <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <script type="text/javascript" src="js/app.js"></script>

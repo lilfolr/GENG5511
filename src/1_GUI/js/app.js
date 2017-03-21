@@ -24,7 +24,11 @@ app = new Vue({
             committed: false,
             packet_simulation:{
                 network_protocol: "",
-                application_protocol: ""
+                application_protocol: "",
+                source_port: 22,
+                dest_port: 22,
+                ttl: 3,
+                corrupt: 0
             },
             firewall:{
                 type: "",
@@ -135,7 +139,11 @@ app = new Vue({
                 committed: false,
                 packet_simulation:{
                     network_protocol: "",
-                    application_protocol: ""
+                    application_protocol: "",
+                    source_port: 22,
+                    dest_port: 22,
+                    ttl: 3,
+                    corrupt: 0
                 },
                 firewall:{
                     type: "",
@@ -144,6 +152,7 @@ app = new Vue({
                     new_rules: ""
                 }
             }
+            this.close_side_bar();
         },
         close_side_bar: function(){
             child=null;
@@ -264,6 +273,7 @@ app = new Vue({
                     }
                 });
             });
+            this.clear_selected_node();
         },
         update_node: function() {
             var selectedNode = this.selected_node;
@@ -291,6 +301,7 @@ app = new Vue({
                         easingFunction: "easeInQuad"
                     }
                 });
+            this.clear_selected_node();
         }
     },
 });
