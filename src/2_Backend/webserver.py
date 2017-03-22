@@ -52,7 +52,10 @@ def connect(sid, environ):
 @sio.on('chat message', namespace='')
 async def message(sid, data):
     print("message ", data)
-    await sio.emit('reply', room=sid)
+    if data=='er':
+        await sio.emit('error',data="Test", room=sid)
+    else:
+        await sio.emit('reply', room=sid)
 
 
 @sio.on('disconnect', namespace='')
