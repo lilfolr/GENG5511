@@ -1,18 +1,3 @@
-side_nav_open = false;
-
-function show_side_nav() {
-    if (!side_nav_open) {
-        $('#side_bar').sideNav('show');
-        side_nav_open = true;
-    }
-}
-
-function hide_side_nav() {
-    if (side_nav_open) {
-        $('#side_bar').sideNav('hide');
-        side_nav_open = false;
-    }
-}
 
 function node_color(is_server, is_client) {
     if (is_server) {
@@ -36,41 +21,26 @@ function alert_msg(msg, level, timeout) {
         Materialize.toast(msg, timeout || 5000, "blue");
     }
 }
-
+var current_node_id = 1;
+var current_edge_id = 0;
+var nodes
+var edges
 $(function() {
-    $('.modal').modal();
-
-    // SETUP COMPONENTS
-    $('#side_bar').sideNav({
-        edge: 'right',
-        closeOnClick: false,
-        draggable: false
-    });
-    $('#loading_modal').modal({
-        dismissible: false
-    });
-    $("select").material_select();
-
-    $(':input.Percent').change(function() {
-        $(this).val(function(index, old) { return old.replace(/[^0-9]/g, '') + '%'; });
-    });
     // SETUP NETWORK
-    var nodeDetails, nodes, edges, network;
-    var current_node_id = 1;
-    var current_edge_id = 0;
+    var nodeDetails;
 
     app.$data.nodes= [{
         id: 0,
         label: 'Client 1',
         shape: 'circle',
-        type: ['C'],
+        type: "C",
         color: node_color(0, 1),
         committed: true
     }, {
         id: 1,
         label: 'Server 1',
         shape: 'circle',
-        type: ['S'],
+        type: "S",
         color: node_color(1, 0),
         committed: true
     }];
@@ -100,6 +70,9 @@ $(function() {
                 "roundness": 0
             },
             "color": "black"
+        },
+        "interaction":{
+            "zoomView": false
         }
     };
     network = new vis.Network(container, data, options);
@@ -117,7 +90,7 @@ $(function() {
         var my_node = nodeDetails[node_id];
         if (my_node !== null) {
             app.$data.selected_node['type']=my_node.type;
-            show_side_nav();
+            app.open_side_bar();
         }
     }
 
@@ -126,35 +99,6 @@ $(function() {
             $('#firewall_modal').modal('open');
         });
     }
-
-    function load_packet_dialog(node_id) {
-        websocket_run('get-packet_gen', node_id, function(){
-            $('#packet_modal').modal('open');
-        });
-    }
-
-    $("#nav_btn_node_new").click(function() {
-        app.clear_selected_node();
-        show_side_nav();
-    });
-    $("#nav_btn_node_del").click(function() {
-        var selectedNode = app.$data.selected_node;
-        var id = selectedNode['id'];
-        websocket_run('delete-node', id, function() {
-            network.deleteSelected();
-            nodeDetails[id] = null;
-        });
-    });
-
-    connect_node_start = null;
-    $("#nav_btn_node_connect").click(function() {
-        if (network.getSelectedNodes().length == 1) {
-            connect_node_start = network.getSelectedNodes()[0];
-            alert_msg('Select node to connect to', 'info');
-        } else {
-            alert_msg('Select a node first', 'warning');
-        }
-    });
 
     $('#node_details_firewall').click(function(){
         if (network.getSelectedNodes().length == 1) {
@@ -165,55 +109,11 @@ $(function() {
         }
     });
 
-    $('#node_details_packets').click(function(){
-        if (network.getSelectedNodes().length == 1) {
-            node_id = network.getSelectedNodes()[0];
-            load_packet_dialog(node_id);
-        } else {
-            alert_msg('Select a node first', 'warning');
-        }
-    });
+ 
 
     $("#form_node_new").submit(function(e) {
         e.preventDefault();
-        var name = app.$data.selected_node['label'];
-        var s = $("#node_type").val().includes('S');
-        var c = $("#node_type").val().includes('C');
-        if (!app.$data.selected_node['committed']) {
-            var newId = current_node_id+1;
-            websocket_run('create-node', newId, function(){
-                var newId = ++current_node_id;
-                var node_to_add = {
-                id: newId,
-                    label: name,
-                    shape: 'circle',
-                    color: node_color(s, c),
-                    type: s ? c ? ['S', 'C'] : ['S'] : ['C'],
-                    committed: true
-                };
-                nodeDetails.push(node_to_add);
-                nodes.add(node_to_add);
-            })
-
-        } else {
-            var selectedNode = app.$data.selected_node;
-            var name = selectedNode['label'];   // Needs to be manually set to avoid race
-            var id = selectedNode['id'];        // Needs to be manually set to avoid race
-            websocket_run('update-node', id, function() {
-                nodes.update({
-                    id: id,
-                    label: name,
-                    color: node_color(s, c)
-                });
-                nodeDetails[id]['label'] = name;
-                nodeDetails[id]['type'] = s ? c ? ['S', 'C'] : ['S'] : ['C'];
-                network.unselectAll();
-                fitAnimated();
-            });
-        }
-        hide_side_nav();
-        app.clear_selected_node();
-        fitAnimated();
+        
     });
 
     network.on("click", function(params) {
@@ -223,6 +123,7 @@ $(function() {
             for (var y=0;y<vs.length;y++){
                 app.$data.selected_node[vs[y]]=x[vs[y]];
             }
+            var connect_node_start = app.$data.connect_node_start;
             if (connect_node_start !== null) {
                 if (network.getSelectedNodes()[0] == connect_node_start) {
                     alert_msg("Can't connect node to self", "warning");
@@ -255,19 +156,13 @@ $(function() {
                     }
                     network.unselectAll();
                 }
-                connect_node_start = null;
+                app.$data.connect_node_start = null;
             } else {
                 load_details_bar(params.nodes[0]);
             }
         } else {
             app.clear_selected_node();
-            hide_side_nav();
+            app.close_side_bar()
         }
     });
-
-
-    $("#btn_close_sideNav").click(function() {
-        hide_side_nav();
-        app.clear_selected_node();
-    })
 });

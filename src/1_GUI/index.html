@@ -6,274 +6,188 @@
         .dropdown-content li>a {
             color: #000000 !important;
         }
-        
-        .modal {
-            width: 75% !important;
-            max-width: 500px;
+        .el-menu--dark {
+            background-color: #000 !important;
         }
-        .modal-large{
-            height: 85% !important;
-            max-height: 90% !important;
-            max-width: 70% !important;
+        .el-menu--horizontal.el-menu--dark .el-submenu__title:hover {
+            background-color: #000 !important;
         }
-        
-        #loading_modal {
-            z-index: 2000 !important;
+        .el-dialog--small {
+            width: 30% !important;
+            min-width: 450px;
         }
-        
-        #sidenav-overlay {
-            display: none;
-        }
-        
-        #toast-container {
-            top: auto !important;
-            right: auto !important;
-            bottom: 10%;
-            left: 7%;
-        }
-        .pre {
+        .code {
             background-color: #f5f5f5 !important;
             border: 1px solid #ccc !important;
             border-radius: 4px !important;
             font-family: monospace, monospace;
+            line-height: initial !important;
+        }
+        #side_nav{ 
+            position: absolute; 
+            right: 0; 
+            float: right; 
+            top: 58px; 
+            min-width:165px; 
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="css/vis.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
     <script type="text/javascript" src="js/vis.min.js"></script>
     <script>
-        var app; // vuejs app
+        var app;        // vuejs app
+        var network     // visjs network
     </script>
 </head>
 
-<body>
+<body style="margin: 0;">
     <div id='app'>
-
-        <!-- File - Dropdown Structure -->
-        <ul id="nav_dropdown_file" class="dropdown-content">
-            <li><a href="#" id="nav_btn_file_new">New</a></li>
-            <li><a href="#" id="nav_btn_file_save">Save</a></li>
-            <li><a href="#" id="nav_btn_file_open">Open</a></li>
-        </ul>
-        <!-- Manage Nodes - Dropdown Structure -->
-        <ul id="nav_dropdown_nodes" class="dropdown-content">
-            <li><a href="#" id="nav_btn_node_new">Create New</a></li>
-            <li><a href="#" id="nav_btn_node_del">Delete Selected</a></li>
-            <li class="divider"></li>
-            <li><a href="#" id="nav_btn_node_connect">Connect Nodes</a></li>
-        </ul>
-        <!--Details Side Bar -->
-        <ul id="slide-out" class="side-nav">
-            <li style="text-align: center;">
-                <a>
-                    <h5>Node Details</h5>
-                </a>
-            </li>
-            <li>
-                <div class="divider"></div>
-            </li>
-            <form id="form_node_new" action="#">
-                <div class="row">
-                    <div class="input-field col s12">
-                        <input placeholder="Node Name" v-model="selected_node.label" required="required" id="node_name" type="text" class="validate">
-                        <label for="node_name">Node Name</label>
-                    </div>
-                    <div class="input-field col s12">
-                        <select required="required" data-placeholder="Month" v-multiselect="selected_node.type" id="node_type" class="validate" multiple>
-                            <option value="S">Server</option>
-                            <option value="C">Client</option>
-                        </select>
-                        <label>Node Type</label>
-                    </div>
-                    <div class="input-field col s12">
-                        <button type="button" v-bind:disabled="!selected_node.committed" id="node_details_firewall" style="margin: 0 auto; display: table;"
-                            class="waves-effect waves-yellow btn-flat">Edit node firewall</button>
-                    </div>
-                    <div class="input-field col s12">
-                        <button type="button" v-bind:disabled="!selected_node.committed" id="node_details_packets" style="margin: 0 auto; display: table;"
-                            class="waves-effect waves-yellow btn-flat">Edit Packet Simulation</button>
-                    </div>
-                    <div class="input-field col s6">
-                        <button type=button id="btn_close_sideNav" class="waves-effect waves-red btn-flat" formnovalidate>Close</button>
-                    </div>
-                    <div class="input-field col s6">
-                        <button type="submit" id="node_details_btn" class="waves-effect waves-green btn-flat">
-                        <span v-if="selected_node.committed">Update</span>
-                        <span v-else>Create</span>
-                    </button>
-                    </div>
-                </div>
-            </form>
-        </ul>
-
-        <!-- Firewall Modal -->
-        <div id="firewall_modal" class="modal modal-fixed-footer modal-large">
-            <div class="modal-content">
-                <h4>Firewall - {{selected_node.label}}</h4>
-                <div class="row">
-                    <div class="input-field col s12">
-                        <select required="required" id="node_type" class="validate">
-                            <option value="IP">IPTables</option>
-                            <option value="PF">PF</option>
-                            <option value="NT">NTFTables</option>
-                        </select>
-                        <label for="node_name">Firewall Type</label>
-                    </div>
-                    <label style="padding-left: .75rem;">Current Rules</label>
-                        <div style="padding-left: .75rem;" ><pre class='pre'>-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT </pre></div>
-                    <div class="switch" style="padding-left: .75rem;">
-                        <label>Clear current rules?</label><br/><br/>
-                        <label>
-                          No
-                          <input type="checkbox"> <span class="lever"></span>
-                          Yes
-                        </label></div><br/>
-                        <label style="padding-left: .75rem;" for="textarea1">Add the following rules:</label>
-                    <div class="input-field col s12">
-                        <textarea id="textarea1" class="pre materialize-textarea"></textarea>
-                    </div>
-
-                    <div class="input-field col s12">
-                        <input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat ">Update</a>
-                <a href="#" class="modal-action modal-close waves-effect waves-red btn-flat ">Close</a>
-            </div>
-        </div>
-
-        <!-- Packet Modal -->
-        <div id="packet_modal" class="modal modal-fixed-footer modal-large">
-            <div class="modal-content">
-                <h4>Packet Generation - {{selected_node.label}}</h4>
-                <div class="row">
-                    <div class="input-field col s12">
-                        <select required="required" id="node_type" class="validate">
-                           <option v-bind:value="item" v-for="item in packet_options.Network_Layer">{{item}}</option>
-                        </select>
-                        <label for="node_name">Network Protocol</label>
-                    </div>
-                    <div class="input-field col s4">
-                         <input placeholder="Source Port" id="source_port" type="number" class="validate" min=0>
-                        <label for="node_name">Source Port</label>
-                    </div>
-                    <div class="input-field col s4">
-                        <input placeholder="Destination Port" id="dest_port" type="number" class="validate" min=0>
-                        <label for="node_name">Destination Port</label>
-                    </div>
-                    <div class="input-field col s4">
-                        <input placeholder="TTL [Hops]" id="TTL" type="number" class="validate" min=0>
-                        <label for="node_name">Time to live</label>
-                    </div>                    
-                    <div class="input-field col s6">
-                        <select required="required" id="node_type" class="validate">
-                           <option v-bind:value="item" v-for="item in packet_options.Data_Type">{{item}}</option>
-                        </select>
-                        <label for="node_name">Application Protocol</label>
-                    </div>
-                    <div class="input-field col s6">
-                        <input placeholder="% Corrupt packets" id="TTL" class="percent validate" type="text" >
-                        <label for="node_name">Corrupt Packets</label>
-                    </div>
-
-                    <div class="input-field col s12">
-                        <input type="checkbox" class="filled-in" id="filled-in-box" checked="checked" />
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat ">Update</a>
-                <a href="#" class="modal-action modal-close waves-effect waves-red btn-flat ">Close</a>
-            </div>
-        </div>
-
+        
         <!-- Nav bar -->
-        <a data-activates="slide-out" id="side_bar" style="display: none"></a>
-        <nav class="black">
-            <div class="nav-wrapper">
-                <a href="#" class="brand-logo center">GENG5511 - Firewall Visualisation</a>
-                <ul id="nav-mobile" class="left hide-on-small-and-down">
-                    <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_file">File<i class="material-icons right">arrow_drop_down</i></a></li>
-                    <li><a class="dropdown-button" href="#" data-activates="nav_dropdown_nodes">Manage Nodes<i class="material-icons right">arrow_drop_down</i></a></li>
-                </ul>
-            </div>
-        </nav>
+        <div id="navbar">
+            <el-menu mode="horizontal" theme="dark" @select="handleSelect">
+              <el-menu-item index="1">GENG5511 - Firewall Visualisation</el-menu-item>
+              <el-submenu index="2">
+                <template slot="title">Manage Nodes</template>
+                <el-menu-item index="2-1">Create New</el-menu-item>
+                <el-menu-item index="2-2">Delete Selected</el-menu-item>
+                <el-menu-item index="2-3">Connect Nodes</el-menu-item>
+            </el-submenu>
+            </el-menu>
+        </div>
 
         <!-- Data table-->
-        <div class="row">
-            <div class="col s5" id="table">
-                <table class="bordered highlight">
-                    <thead>
-                        <tr>
-                            <th data-field="id">ID</th>
-                            <th data-field="name">Name</th>
-                            <th data-field="price">Packets In [T]</th>
-                            <th data-field="price">Packets In Blocked</th>
-                            <th data-field="price">Packets Out [T]</th>
-                            <th data-field="price">Packets Out Blocked</th>
-                        </tr>
-                    </thead>
-                    <tbody id='data_table'>
+        <el-row v-loading='loading' element-loading-text="Loading..." >
+        <el-col :span="12">
+        <el-table :data="tableData" height="100%" style="width: 100%">
+          <el-table-column prop="Node_ID" label="ID"></el-table-column>
+          <el-table-column prop="Node_Name" label="Name"></el-table-column>
+          <el-table-column prop="Packets_In" label="In"></el-table-column>
+          <el-table-column prop="Packets_In_Block" label="In [Block]"></el-table-column>
+          <el-table-column prop="Packets_Out" label="Out"></el-table-column>
+          <el-table-column prop="Packets_Out_Block" label="Out [Block]"></el-table-column>
+        </el-table>
+            </el-col>
+            <el-col :span="12">
+                <div style="border-left: solid black;" id="firewall_network"></div>
+            </el-col>
+        </el-row>
 
-                    </tbody>
-                </table>
-            </div>
-            <div class="col s7" id="firewall_network"></div>
-        </div>
+        <!-- SIDE_NAV -->
+        <div id="side_nav">
+        <el-menu mode="vertical" id="side_nav_el" default-active="2" class="el-menu-vertical-demo" theme="dark">
+          <el-submenu index="1">
+          <template slot="title"><i class="el-icon-share"></i>Node Details</template>
+            <el-menu-item-group title="Node Name">
+              <el-menu-item index="1-1"><el-input placeholder="Node Name" v-model="selected_node.label"></el-input></el-menu-item>
+          </el-menu-item-group>
+          <el-menu-item-group title="Node Type">
+              <el-menu-item index="1-3">
+                  <el-select v-model="selected_node.type" placeholder="Node Type">
+                    <el-option v-for="item in node_type_options" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                  </el-select>
+              </el-menu-item>
+          </el-menu-item-group>
+          <el-menu-item-group title="Firewall" v-if="selected_node.committed">
+          <el-menu-item index="1-4">
+            <el-button type="default" :disabled="!selected_node.committed" @click="load_firewall_dialog">Edit Node Firewall</el-button>
+          </el-menu-item>
+          </el-menu-item-group>
+          <el-menu-item-group title="Packets" v-if="selected_node.committed">
+          <el-menu-item index="1-5">
+            <el-button type="default" :disabled="!selected_node.committed" @click="load_packet_dialog">Edit Packet Simulation</el-button>
+          </el-menu-item>
+          </el-menu-item-group>
+          <el-menu-item-group title="Save">
+          <el-menu-item index="1-5">
+            <el-button type="primary" @click="update_node" v-if="selected_node.committed">Update</el-button>
+            <el-button type="primary" @click="create_node" v-else >Create</el-button>
+          </el-menu-item>
+      </el-submenu>
+    </el-menu>
 
-        <!--LOADING MODAL-->
-        <div id="loading_modal" class="modal" style="text-align: center;">
-            <div class="modal-content">
-                <div class="preloader-wrapper big active">
-                    <div class="spinner-layer spinner-blue-only">
-                        <div class="circle-clipper left">
-                            <div class="circle"></div>
-                        </div>
-                        <div class="gap-patch">
-                            <div class="circle"></div>
-                        </div>
-                        <div class="circle-clipper right">
-                            <div class="circle"></div>
-                        </div>
-                    </div>
-                </div>
+<!-- Firewall Modal -->
+        <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" size="large">
+          <el-form>
+            <el-form-item label="Firewall Type">
+                <el-select v-model="selected_node.firewall.type" placeholder="Firewall Type">
+                    <el-option v-for="item in firewall_options.type" :key="item" :label="item" :value="item"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="Current Rules:">
+            <el-input class="code" readonly type="textarea" autosize placeholder="Please input" v-html="selected_node.firewall.current_rules">
+            </el-input>
+            </el-form-item>
+            <el-radio-group v-model="selected_node.firewall.clear_current">
+              <el-radio-button label="Clear"></el-radio-button>
+              <el-radio-button label="Append"></el-radio-button>
+            </el-radio-group>
+            <el-form-item label="Add rules:">
+              <el-input class="code" type="textarea" autosize placeholder="Rules here" v-model="selected_node.firewall.new_rules">
+              </el-input>
+            </el-form-item>
+          </el-form>  
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="form_visible.firewall = false">Cancel</el-button>
+            <el-button type="primary" @click="form_visible.firewall = false">Confirm</el-button>
+          </span>
+        </el-dialog>
+
+        <!-- Packet Modal -->
+        <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="large">
+          <el-form>
+            <el-form-item label="Network Layer">
+                <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
+                    <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="Application Layer">
+                <el-select v-model="selected_node.packet_simulation.application_protocol" placeholder="Application Protocol">
+                    <el-option v-for="item in packet_options.Application_Layer" :key="item" :label="item" :value="item"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="Source Port">
+              <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.source_port">
+                <template slot="prepend">#</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="Destination Port">
+              <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.dest_port">
+                <template slot="prepend">#</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="">
+            <div class="block">
+                <span class="demonstration">Time to live </span>
+                <el-input placeholder="Hops" v-model="selected_node.packet_simulation.ttl">
+                <template slot="prepend">#</template>
+              </el-input>
             </div>
-            <div class="modal-footer">
-                <p class="waves-effect waves-green ">Loading</p>
+            <div class="block">
+                <span class="demonstration">% Corrupt packets</span>
+                <el-input placeholder="Corrupt %" v-model="selected_node.packet_simulation.corrupt">
+                  <template slot="append">%</template>
+                </el-input>
             </div>
-        </div>
+          </el-form>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="form_visible.packet = false">Cancel</el-button>
+            <el-button type="primary" @click="form_visible.packet = false">Confirm</el-button>
+          </span>
+        </el-dialog>
+
     </div>
+</div>
 
-    <!--Imports -->
+<!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <script type="text/javascript" src="js/app.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script type="text/javascript" src="js/websocket.js"></script>
-    <script>
-        (function ($) {
-            $(function () {
-                $("select[required]").css({
-                    display: "inline",
-                    height: 0,
-                    padding: 0,
-                    width: 0
-                });
-                $('.dropdown-button').dropdown({
-                    inDuration: 300,
-                    outDuration: 225,
-                    hover: false, // Activate on hover
-                    belowOrigin: true, // Displays dropdown below the button
-                    alignment: 'right' // Displays dropdown with edge aligned to the left of button
-                });
-            }); // End Document Ready
-        })(jQuery); // End of jQuery name space
-    </script>
 </body>
 
 </html>

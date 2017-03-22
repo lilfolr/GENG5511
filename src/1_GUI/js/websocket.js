@@ -1,11 +1,20 @@
 var socket = io.connect('http://localhost:8080');
-alert_msg('Connecting to socket...', 'info');
+app.$message({
+      message: 'Connecting to socket...',
+      type: 'info'
+  });
 
 socket.on('connect', function () {
-    alert_msg('Socket Connected.', 'info');
+    app.$message({
+      message: 'Connected to Socket',
+      type: 'info'
+  });
 });
 socket.on('disconnect', function () {
-    alert_msg('Socket Disconnected', 'info');
+app.$message({
+      message: 'Disconnected from Socket',
+      type: 'warning'
+  });
 });
 
 /**
@@ -20,12 +29,11 @@ socket.on('disconnect', function () {
  * @param succ_func
  */
 function websocket_run(func, data, succ_func){
-
-    $('#loading_modal').modal('open');
+	app.$data.loading=true;
     // Timeout to simluate network
     setTimeout(function(){
         console.log('Running '+func+' with data '+data);
-        $('#loading_modal').modal('close');
+    	app.$data.loading=false;
         succ_func()
-    },200)
+    },1000)
 }
