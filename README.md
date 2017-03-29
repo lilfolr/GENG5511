@@ -19,3 +19,9 @@ Containers
 - Docker containers
 - 1 container per node
 - Respond to backend reqs.
+
+Running the application:
+
+* `cd src/2_Backend`<br/>
+* `source env/bin/activate` - Assuming you've got a virtualenv setup, with requirements installed </br>
+* `python webserver.py`
