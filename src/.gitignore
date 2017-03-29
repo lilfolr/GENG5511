@@ -1,7 +1,0 @@
-/Default/
-run
-*.o
-traffic.fifo
-.cproject
-.project
-.settings/*
