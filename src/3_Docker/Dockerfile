@@ -2,7 +2,7 @@ FROM alpine:3.4
 RUN apk add --update \
     -U iptables \
     -U ulogd \
-    python \
+    python3 \
     python-dev \
     py-pip \
     build-base \
