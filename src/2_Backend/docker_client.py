@@ -17,7 +17,7 @@ class docker_client(object):
         Creates docker container. Returns container id
         """
         volume_key = {mnt_dir:{'bind': '/mnt/vol1', 'mode': 'rw'}}
-        new_container = self.client.containers.run('test-ip', command='bin/sh', detach=True, tty=True, volumes=volume_key)
+        new_container = self.client.containers.run('test-ip', command='bin/sh', detach=True, tty=True, volumes=volume_key, privileged=True)
         self.containers[new_container.id] = new_container
         return new_container.id
 
