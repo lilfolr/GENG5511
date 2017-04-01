@@ -1,4 +1,7 @@
 FROM alpine:3.4
+
+MAINTAINER Leighton Lilford<lrlilford@gmail.com>
+
 RUN apk add --update \
     -U iptables \
     -U ulogd \
