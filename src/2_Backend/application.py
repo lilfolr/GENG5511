@@ -3,6 +3,8 @@ import os, shutil
 
 
 HOST_MNT_DIR = "/tmp/docker_mnt"
+ACCEPT_LOG_FILE = "ulogd_accept.log"
+DROP_LOG_FILE = "ulogd_drop_reject.log"
 class backend(object):
     def __init__(self):
         self.current_nodes = []
@@ -11,8 +13,10 @@ class backend(object):
 
     def _clean(self):
         # Clean file-shares
-        shutil.rmtree(HOST_MNT_DIR)
-        os.makedirs(HOST_MNT_DIR)
+        try:
+            shutil.rmtree(HOST_MNT_DIR)
+        except Exception as e:
+            os.makedirs(HOST_MNT_DIR)
         # Clean docker
         self.d_c.destroy_containers()
 
@@ -20,10 +24,6 @@ class backend(object):
         new_dir = os.path.join(HOST_MNT_DIR, str(node_id))
         os.makedirs(new_dir)
         print("Made dir "+new_dir)
-        in_file = os.path.join(new_dir, 'in')   # In to container
-        out_file = os.path.join(new_dir, 'out') # Out from container
-        os.mkfifo(in_file)
-        os.mkfifo(out_file)
         container_id = self.d_c.create_container(new_dir)
         self.current_nodes.append({
         	"node_id": node_id,
