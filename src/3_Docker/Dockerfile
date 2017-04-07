@@ -14,6 +14,8 @@ RUN apk add --update \
 
 COPY ulogd.conf /etc/ulogd.conf
 COPY iptables-save iptables-save
+
+RUN virtualenv env -p python3 && source env/bin/activate && pip install pypacker
 # Once the container is made, the following needs to be run:
 # su root -c 'iptables-restore iptables-save'
 # This cant be in the dockerfile - https://github.com/docker/docker/issues/1916
