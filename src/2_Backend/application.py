@@ -1,4 +1,5 @@
 from docker_client import docker_client
+from database_client import database_client
 import os, shutil
 
 
@@ -9,6 +10,7 @@ class backend(object):
     def __init__(self):
         self.current_nodes = []
         self.d_c = docker_client()
+        self.db = database_client()
         self._clean()
 
     def _clean(self):
@@ -39,3 +41,16 @@ class backend(object):
     		container_id = container_ids[0]
     		self.d_c.destroy_container(container_id)
 
+    def collate_node_logs(self):
+        print("Collating Logs")
+        for node in self.current_nodes:
+            accept_file = os.path.join(HOST_MNT_DIR, str(node['node_id'])+"/"+ACCEPT_LOG_FILE)
+            drop_reject_file = os.path.join(HOST_MNT_DIR, str(node['node_id'])+"/"+DROP_LOG_FILE)
+            if os.path.exists(accept_file):
+                with open(accept_file, "r") as fo:
+                    for line in fo:
+                        self.db.add_log(line)
+            if os.path.exists(drop_reject_file):
+                with open(drop_reject_file, "r") as fo:
+                    for line in fo:
+                        self.db.add_log(line)
