@@ -1,9 +1,7 @@
 Program/cmake-build-debug/*
 Program/.idea/*
 *.swp
-
+sqlite.db
 env/
-
 \.idea/
-
 *.pyc
