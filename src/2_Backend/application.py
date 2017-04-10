@@ -1,6 +1,6 @@
 from docker_client import docker_client
 from database_client import database_client
-import os, shutil
+import os, shutil, random
 
 
 HOST_MNT_DIR = "/tmp/docker_mnt"
@@ -23,11 +23,14 @@ class backend(object):
         self.d_c.destroy_containers()
 
     def create_node(self, node_id, firewall_type):
+        node_mac, node_ip = _generate_mac_ip(node_id)       # Stored here - wont 'really' be used (we will fake it)
         new_dir = os.path.join(HOST_MNT_DIR, str(node_id))
         os.makedirs(new_dir)
         print("Made dir "+new_dir)
         container_id = self.d_c.create_container(new_dir)
         self.current_nodes.append({
+            "mac": node_mac,
+            "ip": node_id,
         	"node_id": node_id,
         	"container_id": "container_id",
         	"firewall_type": firewall_type
@@ -54,3 +57,21 @@ class backend(object):
                 with open(drop_reject_file, "r") as fo:
                     for line in fo:
                         self.db.add_log(line)
+
+def _generate_mac_ip(node_id):
+    mod = 0
+    mod = node_id % 255
+    node_id = node_id - mod*255
+    return ("%02x:%02x:%02x:%02x:%02x:%02x" % (
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255),
+            mod,
+            node_id
+        ),
+        "10.%02x.%02x.%02x" % (
+            random.randint(0, 255),
+            mod,
+            node_id
+        ))
