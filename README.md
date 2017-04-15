@@ -25,3 +25,5 @@ Running the application:
 * `cd src/2_Backend`<br/>
 * `source env/bin/activate` - Assuming you've got a virtualenv setup, with requirements installed </br>
 * `python webserver.py`
+
+* build container with `docker build -t alpine_ipt .`
