@@ -69,8 +69,8 @@ int main(int argc, char* argv[]){
     //SEE REF_FLAGS Below
     //ipinfo->flags
     //ipinfo->invflags
-    // ipinfo->smsk
-    // ipinfo->dmsk
+    ipinfo->smsk    = get_in_addr(inet_addr("255.255.255.255"));
+    ipinfo->dmsk    = get_in_addr(inet_addr("255.255.255.255"));
     // ipinfo->iniface
     // ipinfo->outiface
     // ipinfo->iniface_mask
