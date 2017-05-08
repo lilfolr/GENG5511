@@ -1,13 +1,14 @@
+IDIR=include
 CC=gcc
 CFLAGS=-c
 
 all: run
 
 run: iptables.o
-	$(CC) run.c ip_tables.o -liptc -lip4tc -lip6tc -ldl -lnfnetlink -o run
+	$(CC) run.c ip_tables.o -o run
 
 iptables.o:
-	$(CC) $(CFLAGS) ip_tables.c -Iinclude
+	$(CC) $(CFLAGS) ip_tables.c -I$(IDIR)
 
 
 clean:
