@@ -1,6 +1,7 @@
 IDIR=include
 CC=gcc
 CFLAGS=-c
+LIBS=-lcheck -lm -lpthread -lrt
 
 all: run
 
@@ -10,6 +11,12 @@ run: iptables.o
 iptables.o:
 	$(CC) $(CFLAGS) ip_tables.c -I$(IDIR)
 
+test: build-test
+	./test 
+
+build-test: run
+	checkmk test.check > test.tmp.c
+	$(CC) -o test test.tmp.c $(LIBS)
 
 clean:
-	rm -f *.o run 
+	rm -f *.o run test test.tmp.c
