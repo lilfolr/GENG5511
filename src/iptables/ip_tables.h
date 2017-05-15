@@ -16,6 +16,9 @@
 #define _UAPI_IPTABLES_H
 
 #include <linux/netfilter/x_tables.h>
+#include "include/linux/netfilter/netdevice.h"
+#include "include/skbuff.h"
+#include "include/xtables_extra.h"
 
 #ifndef __KERNEL__
 #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
@@ -45,6 +48,8 @@
 #define IPT_UDP_INV_DSTPT	XT_UDP_INV_DSTPT
 #define IPT_UDP_INV_MASK	XT_UDP_INV_MASK
 
+#define IP_OFFSET	0x1FFF		/* "Fragment Offset" part	*/
+
 /* The argument to IPT_SO_ADD_COUNTERS. */
 #define ipt_counters_info xt_counters_info
 /* Standard return verdict, or do jump. */
@@ -62,9 +67,25 @@
 
 #define	IFNAMSIZ	16
 
-
+#define NF_DROP 0
+#define NF_ACCEPT 1
+#define NF_STOLEN 2
+#define NF_QUEUE 3
+#define NF_REPEAT 4
+#define NF_STOP 5
+#define NF_MAX_VERDICT NF_STOP
 #endif
+#define __read_mostly __attribute__((__section__(".data..read_mostly")))
 
+struct static_key {
+	atomic_t enabled;
+	union {
+		unsigned long type;
+		struct jump_entry *entries;
+		struct static_key_mod *next;
+	};
+};
+struct static_key xt_tee_enabled __read_mostly;
 struct ipt_ip {
 	/* Source and destination IP addr */
 	struct in_addr src, dst;
@@ -139,20 +160,11 @@ struct ipt_entry {
 #define IPT_SO_GET_REVISION_MATCH	(IPT_BASE_CTL + 2)
 #define IPT_SO_GET_REVISION_TARGET	(IPT_BASE_CTL + 3)
 #define IPT_SO_GET_MAX			IPT_SO_GET_REVISION_TARGET
-
 /* ICMP matching stuff */
 struct ipt_icmp {
 	__u8 type;				/* type to match */
 	__u8 code[2];				/* range of code */
 	__u8 invflags;				/* Inverse flags */
-};
-enum nf_inet_hooks {
-	NF_INET_PRE_ROUTING,
-	NF_INET_LOCAL_IN,
-	NF_INET_FORWARD,
-	NF_INET_LOCAL_OUT,
-	NF_INET_POST_ROUTING,
-	NF_INET_NUMHOOKS
 };
 /* Values for "inv" field for struct ipt_icmp. */
 #define IPT_ICMP_INV	0x01	/* Invert the sense of type/code test */
