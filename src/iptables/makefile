@@ -1,5 +1,5 @@
 IDIR=include
-CC=gcc -fmax-errors=11111111110 -w
+CC=gcc -fmax-errors=10 -w
 CFLAGS=-c
 LIBS=-lcheck -lm -lpthread -lrt
 

@@ -82,7 +82,7 @@ int main(int argc, char* argv[]){
     packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, false);
     printf("Result: ");
     printf(packet_pass ? "True\n" : "False\n");
-    printf("End");
+    printf("End\n");
 }
 /* REF_FLAGS
 // /* Values for "flag" field in struct ipt_ip (general ip structure). */

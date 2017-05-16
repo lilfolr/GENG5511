@@ -85,23 +85,6 @@ get_entry(const void *base, unsigned int offset)
 	return (struct ipt_entry *)(base + offset);
 }
 
-/* All zeroes == unconditional rule. */
-/* Mildly perf critical (only if packet tracing is on) */
-static inline bool unconditional(const struct ipt_entry *e)
-{
-	static const struct ipt_ip uncond;
-
-	return e->target_offset == sizeof(struct ipt_entry) &&
-	       memcmp(&e->ip, &uncond, sizeof(uncond)) == 0;
-}
-
-/* for const-correctness */
-static inline const struct xt_entry_target *
-ipt_get_target_c(const struct ipt_entry *e)
-{
-	return ipt_get_target((struct ipt_entry *)e);
-}
-
 
 static inline
 struct ipt_entry *ipt_next_entry(const struct ipt_entry *entry)

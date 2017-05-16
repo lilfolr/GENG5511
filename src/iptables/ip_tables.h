@@ -160,6 +160,20 @@ struct ipt_entry {
 #define IPT_SO_GET_REVISION_MATCH	(IPT_BASE_CTL + 2)
 #define IPT_SO_GET_REVISION_TARGET	(IPT_BASE_CTL + 3)
 #define IPT_SO_GET_MAX			IPT_SO_GET_REVISION_TARGET
+
+#define PTP_CLASS_NONE  0x00 /* not a PTP event message */
+#define PTP_CLASS_V1    0x01 /* protocol version 1 */
+#define PTP_CLASS_V2    0x02 /* protocol version 2 */
+#define PTP_CLASS_VMASK 0x0f /* max protocol version is 15 */
+#define PTP_CLASS_IPV4  0x10 /* event in an IPV4 UDP packet */
+#define PTP_CLASS_IPV6  0x20 /* event in an IPV6 UDP packet */
+#define PTP_CLASS_L2    0x40 /* event in a L2 packet */
+#define PTP_CLASS_PMASK	0x70 /* mask for the packet type field */
+#define PTP_CLASS_VLAN	0x80 /* event in a VLAN tagged packet */
+
+#define VLAN_HLEN	4
+#define ETH_HLEN	14		/* Total octets in header.	 */
+
 /* ICMP matching stuff */
 struct ipt_icmp {
 	__u8 type;				/* type to match */
@@ -168,6 +182,8 @@ struct ipt_icmp {
 };
 /* Values for "inv" field for struct ipt_icmp. */
 #define IPT_ICMP_INV	0x01	/* Invert the sense of type/code test */
+#define IP6_HLEN	40
+#define UDP_HLEN	8
 
 /* The argument to IPT_SO_GET_INFO */
 struct ipt_getinfo {
@@ -190,7 +206,52 @@ struct ipt_getinfo {
 	/* Size of entries. */
 	unsigned int size;
 };
+static int match(struct sk_buff *skb, unsigned int type, struct rxts *rxts)
+{
+	__u16 *seqid, hash;
+	unsigned int offset = 0;
+	__u8 *msgtype, *data = skb_mac_header(skb);
 
+	/* check sequenceID, messageType, 12 bit hash of offset 20-29 */
+
+	if (type & PTP_CLASS_VLAN)
+		offset += VLAN_HLEN;
+
+	switch (type & PTP_CLASS_PMASK) {
+	case PTP_CLASS_IPV4:
+		offset += ETH_HLEN + IPV4_HLEN(data + offset) + UDP_HLEN;
+		break;
+	case PTP_CLASS_IPV6:
+		offset += ETH_HLEN + IP6_HLEN + UDP_HLEN;
+		break;
+	case PTP_CLASS_L2:
+		offset += ETH_HLEN;
+		break;
+	default:
+		return 0;
+	}
+
+	if (skb->len + ETH_HLEN < offset + OFF_PTP_SEQUENCE_ID + sizeof(*seqid))
+		return 0;
+
+	if (unlikely(type & PTP_CLASS_V1))
+		msgtype = data + offset + OFF_PTP_CONTROL;
+	else
+		msgtype = data + offset;
+	if (rxts->msgtype != (*msgtype & 0xf))
+		return 0;
+
+	seqid = (__u16 *)(data + offset + OFF_PTP_SEQUENCE_ID);
+	if (rxts->seqid != ntohs(*seqid))
+		return 0;
+
+	hash = ether_crc(DP83640_PACKET_HASH_LEN,
+			 data + offset + DP83640_PACKET_HASH_OFFSET) >> 20;
+	if (rxts->hash != hash)
+		return 0;
+
+	return 1;
+}
 /* The argument to IPT_SO_SET_REPLACE. */
 struct ipt_replace {
 	/* Which table. */
