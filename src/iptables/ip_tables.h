@@ -35,6 +35,8 @@
 #define ipt_counters xt_counters
 #define IPT_CONTINUE XT_CONTINUE
 #define IPT_RETURN XT_RETURN
+#define NF_INVF(ptr, flag, boolean)					\
+	((boolean) ^ !!((ptr)->invflags & (flag)))
 
 /* This group is older than old (iptables < v1.4.0-rc1~89) */
 #include <linux/netfilter/xt_tcpudp.h>
@@ -247,7 +249,7 @@ static int match(struct sk_buff *skb, unsigned int type, struct rxts *rxts)
 	if (skb->len + ETH_HLEN < offset + OFF_PTP_SEQUENCE_ID + sizeof(*seqid))
 		return 0;
 
-	if (unlikely(type & PTP_CLASS_V1))
+	if (type & PTP_CLASS_V1)
 		msgtype = data + offset + OFF_PTP_CONTROL;
 	else
 		msgtype = data + offset;

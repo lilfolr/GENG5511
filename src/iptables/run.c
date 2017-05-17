@@ -1,6 +1,3 @@
-#define NF_INVF(ptr, flag, boolean)					\
-	((boolean) ^ !!((ptr)->invflags & (flag)))
-    
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
