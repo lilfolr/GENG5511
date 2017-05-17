@@ -19,6 +19,7 @@
 #include "include/linux/netfilter/netdevice.h"
 #include "include/skbuff.h"
 #include "include/xtables_extra.h"
+#include "include/ptp_classify.h"
 
 #ifndef __KERNEL__
 #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
@@ -103,6 +104,15 @@ struct ipt_ip {
 	__u8 invflags;
 };
 
+struct rxts {
+	struct list_head list;
+	unsigned long tmo;
+	__u64 ns;
+	__u16 seqid;
+	__u8  msgtype;
+	__u16 hash;
+};
+
 /* Values for "flag" field in struct ipt_ip (general ip structure). */
 #define IPT_F_FRAG		0x01	/* Set if rule is a fragment rule */
 #define IPT_F_GOTO		0x02	/* Set if jump is a goto */
@@ -117,6 +127,9 @@ struct ipt_ip {
 #define IPT_INV_FRAG		0x20	/* Invert the sense of FRAG. */
 #define IPT_INV_PROTO		XT_INV_PROTO
 #define IPT_INV_MASK		0x7F	/* All possible flag bits mask. */
+
+#define DP83640_PACKET_HASH_OFFSET	20
+#define DP83640_PACKET_HASH_LEN		10
 
 /* This structure defines each of the firewall rules.  Consists of 3
    parts which are 1) general IP header stuff 2) match specific
