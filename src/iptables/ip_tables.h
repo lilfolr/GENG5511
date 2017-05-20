@@ -79,7 +79,17 @@
 #define NF_MAX_VERDICT NF_STOP
 #endif
 #define __read_mostly __attribute__((__section__(".data..read_mostly")))
+// PREEMPT
+#define SOFTIRQ_SHIFT	8
+#define SOFTIRQ_OFFSET	(1UL << SOFTIRQ_SHIFT)
+#define SOFTIRQ_DISABLE_OFFSET	(2 * SOFTIRQ_OFFSET)
+#define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
 
+extern void __local_bh_enable_ip(unsigned long ip, unsigned int cnt);
+static inline void local_bh_enable(void)
+{
+	__local_bh_enable_ip(_THIS_IP_, SOFTIRQ_DISABLE_OFFSET);
+}
 struct static_key {
 	atomic_t enabled;
 	union {
