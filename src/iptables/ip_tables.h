@@ -16,6 +16,7 @@
 #define _UAPI_IPTABLES_H
 
 #include <linux/netfilter/x_tables.h>
+//#include "include/bottom_half.h"
 #include "include/linux/netfilter/netdevice.h"
 #include "include/skbuff.h"
 #include "include/xtables_extra.h"
@@ -78,18 +79,23 @@
 #define NF_STOP 5
 #define NF_MAX_VERDICT NF_STOP
 #endif
-#define __read_mostly __attribute__((__section__(".data..read_mostly")))
-// PREEMPT
-#define SOFTIRQ_SHIFT	8
-#define SOFTIRQ_OFFSET	(1UL << SOFTIRQ_SHIFT)
-#define SOFTIRQ_DISABLE_OFFSET	(2 * SOFTIRQ_OFFSET)
-#define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
 
-extern void __local_bh_enable_ip(unsigned long ip, unsigned int cnt);
-static inline void local_bh_enable(void)
-{
-	__local_bh_enable_ip(_THIS_IP_, SOFTIRQ_DISABLE_OFFSET);
-}
+#define IP_NF_ASSERT(x)
+
+#define __read_mostly __attribute__((__section__(".data..read_mostly")))
+
+#include <sched.h>
+#define smp_processor_id() sched_getcpu()
+
+#define bitrev32(x) \
+({			\
+	u32 __x = x;	\
+	__builtin_constant_p(__x) ?	\
+	__constant_bitrev32(__x) :			\
+	__bitrev32(__x);				\
+})
+#define ether_crc(length, data)    bitrev32(crc32_le(~0, data, length))
+
 struct static_key {
 	atomic_t enabled;
 	union {
@@ -115,7 +121,14 @@ struct ipt_ip {
 	/* Inverse flags */
 	__u8 invflags;
 };
-
+static inline struct iphdr *ip_hdr(const struct sk_buff *skb)
+{
+	return (struct iphdr *)skb_network_header(skb);
+}
+static inline unsigned int ip_hdrlen(const struct sk_buff *skb)
+{
+	return ip_hdr(skb)->ihl * 4;
+}
 struct rxts {
 	struct list_head list;
 	unsigned long tmo;
