@@ -16,7 +16,6 @@
 #define _UAPI_IPTABLES_H
 
 #include <linux/netfilter/x_tables.h>
-//#include "include/bottom_half.h"
 #include "include/linux/netfilter/netdevice.h"
 #include "include/skbuff.h"
 #include "include/xtables_extra.h"
@@ -91,7 +90,6 @@ const u8 byte_rev_table[256] = {
 	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
 	0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
 };
-extern u8 const byte_rev_table[256];
 static inline u8 __bitrev8(u8 byte)
 {
 	return byte_rev_table[byte];
@@ -105,6 +103,7 @@ static inline u32 __bitrev32(u32 x)
 	return (__bitrev16(x & 0xffff) << 16) | __bitrev16(x >> 16);
 }
 //</bit stuff>
+
 /* Probably won't need to deal with bottom halves. */
 static inline void local_bh_disable(void) {}
 static inline void local_bh_enable(void) {}

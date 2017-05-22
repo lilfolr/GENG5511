@@ -1,3 +1,5 @@
+#ifndef _LL_CRC_H
+#define _LL_CRC_H
 #define __pure			__attribute__((pure))
 #define u8 __u8
 #define u32 __u32
@@ -160,3 +162,4 @@ u32 __pure __crc32c_le(u32 crc, unsigned char const *p, size_t len)
 
 
 //LL: </crc stuff>
+#endif
