@@ -1,4 +1,3 @@
-#define DEFINE_PER_CPU(type, val) type val //LL: This might not be correct
 enum nf_inet_hooks {
 	NF_INET_PRE_ROUTING,
 	NF_INET_LOCAL_IN,
@@ -153,30 +152,39 @@ struct nf_hook_state {
 
 typedef struct seqcount {
 	unsigned sequence;
-#ifdef CONFIG_DEBUG_LOCK_ALLOC
-	struct lockdep_map dep_map;
-#endif
 } seqcount_t;
-DEFINE_PER_CPU(seqcount_t, xt_recseq);
-EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
+static seqcount_t xt_recseq;
 static inline unsigned int xt_write_recseq_begin(void)
 {
+	//LL: Been modified to remove the per-cpu stuff. No idea how to implement that...
 	unsigned int addend;
 
 	/*
 	 * Low order bit of sequence is set if we already
 	 * called xt_write_recseq_begin().
 	 */
-	addend = (__this_cpu_read(xt_recseq.sequence) + 1) & 1;
+	addend = (xt_recseq.sequence + 1) & 1;
 
 	/*
 	 * This is kind of a write_seqcount_begin(), but addend is 0 or 1
 	 * We dont check addend value to avoid a test and conditional jump,
 	 * since addend is most likely 1
 	 */
-	__this_cpu_add(xt_recseq.sequence, addend);
-	smp_wmb();
+	xt_recseq.sequence = xt_recseq.sequence + addend;
+	asm volatile("" : : : "memory");
 
 	return addend;
 }
+static inline void xt_write_recseq_end(unsigned int addend)
+{
+	xt_recseq.sequence = xt_recseq.sequence + addend;
+}
+static inline struct xt_counters *
+xt_get_this_cpu_counter(struct xt_counters *cnt)
+{
+//LL: nr_cpu_ids is 1
+//	if (nr_cpu_ids > 1)
+//		return this_cpu_ptr((void __percpu *) (unsigned long) cnt->pcnt);
 
+	return cnt;
+}
