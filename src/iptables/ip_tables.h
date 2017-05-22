@@ -105,7 +105,9 @@ static inline u32 __bitrev32(u32 x)
 	return (__bitrev16(x & 0xffff) << 16) | __bitrev16(x >> 16);
 }
 //</bit stuff>
-
+/* Probably won't need to deal with bottom halves. */
+static inline void local_bh_disable(void) {}
+static inline void local_bh_enable(void) {}
 
 #define IP_OFFSET	0x1FFF		/* "Fragment Offset" part	*/
 
