@@ -22,6 +22,7 @@
 #include "include/xtables_extra.h"
 #include "include/ptp_classify.h"
 
+
 #ifndef __KERNEL__
 #define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
 #define IPT_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
@@ -86,7 +87,6 @@
 
 #include <sched.h>
 #define smp_processor_id() sched_getcpu()
-
 #define bitrev32(x) \
 ({			\
 	u32 __x = x;	\
@@ -96,6 +96,14 @@
 })
 #define ether_crc(length, data)    bitrev32(crc32_le(~0, data, length))
 
+#ifdef CONFIG_SMP
+#define read_barrier_depends() __asm__ __volatile__("mb": : :"memory")
+#define smp_read_barrier_depends() read_barrier_depends()
+#else
+#ifndef smp_read_barrier_depends
+#define smp_read_barrier_depends()	do { } while (0)
+#endif
+#endif
 struct static_key {
 	atomic_t enabled;
 	union {
