@@ -1,3 +1,4 @@
+#define DEFINE_PER_CPU(type, val) type val //LL: This might not be correct
 enum nf_inet_hooks {
 	NF_INET_PRE_ROUTING,
 	NF_INET_LOCAL_IN,
@@ -149,3 +150,33 @@ struct nf_hook_state {
 	struct sock *sk;
 	int (*okfn)(struct sock *, struct sk_buff *);
 };
+
+typedef struct seqcount {
+	unsigned sequence;
+#ifdef CONFIG_DEBUG_LOCK_ALLOC
+	struct lockdep_map dep_map;
+#endif
+} seqcount_t;
+DEFINE_PER_CPU(seqcount_t, xt_recseq);
+EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
+static inline unsigned int xt_write_recseq_begin(void)
+{
+	unsigned int addend;
+
+	/*
+	 * Low order bit of sequence is set if we already
+	 * called xt_write_recseq_begin().
+	 */
+	addend = (__this_cpu_read(xt_recseq.sequence) + 1) & 1;
+
+	/*
+	 * This is kind of a write_seqcount_begin(), but addend is 0 or 1
+	 * We dont check addend value to avoid a test and conditional jump,
+	 * since addend is most likely 1
+	 */
+	__this_cpu_add(xt_recseq.sequence, addend);
+	smp_wmb();
+
+	return addend;
+}
+

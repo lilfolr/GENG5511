@@ -85,6 +85,7 @@
 
 #define __read_mostly __attribute__((__section__(".data..read_mostly")))
 
+//LL: Not sure about this...
 #include <sched.h>
 #define smp_processor_id() sched_getcpu()
 #define bitrev32(x) \
@@ -95,6 +96,7 @@
 	__bitrev32(__x);				\
 })
 #define ether_crc(length, data)    bitrev32(crc32_le(~0, data, length))
+// LL: END
 
 #ifdef CONFIG_SMP
 #define read_barrier_depends() __asm__ __volatile__("mb": : :"memory")
@@ -129,6 +131,14 @@ struct ipt_ip {
 	/* Inverse flags */
 	__u8 invflags;
 };
+static inline unsigned char *skb_network_header(const struct sk_buff *skb)
+{
+	return skb->head + skb->network_header;
+}
+static inline unsigned char *skb_mac_header(const struct sk_buff *skb)
+{
+	return skb->head + skb->mac_header;
+}
 static inline struct iphdr *ip_hdr(const struct sk_buff *skb)
 {
 	return (struct iphdr *)skb_network_header(skb);
