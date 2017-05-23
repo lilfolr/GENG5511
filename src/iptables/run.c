@@ -4,7 +4,7 @@
 #include <netdb.h>
 #include <linux/ip.h>
 #include <linux/icmp.h>
-#include "ip_tables.c"
+#include "ip_tables.h"
 
 
 

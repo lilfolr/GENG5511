@@ -56,7 +56,7 @@
 #define u8 __u8
 #define u16 __u16
 #define u32 __u32
-const u8 byte_rev_table[256] = {
+static const u8 byte_rev_table[256] = {
 	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
 	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
 	0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
@@ -414,6 +414,17 @@ ipt_get_target(struct ipt_entry *e)
 	return (void *)e + e->target_offset;
 }
 
+//LL: Actual definitions:
+extern inline bool
+ip_packet_match(const struct iphdr *ip,
+		const char *indev,
+		const char *outdev,
+		const struct ipt_ip *ipinfo,
+		int isfrag);
+
+extern unsigned int ipt_do_table(struct sk_buff *skb,
+	     const struct nf_hook_state *state,
+	     struct xt_table *table);
 /*
  *	Main firewall chains definitions and global var's definitions.
  */

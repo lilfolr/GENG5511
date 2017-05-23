@@ -38,8 +38,8 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
 	return ret;
 }
 
-static inline bool
-ip_packet_match(const struct iphdr *ip,
+//LL: Removed Static
+inline bool ip_packet_match(const struct iphdr *ip,
 		const char *indev,
 		const char *outdev,
 		const struct ipt_ip *ipinfo,
