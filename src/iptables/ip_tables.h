@@ -170,7 +170,7 @@ struct static_key {
 		struct static_key_mod *next;
 	};
 };
-struct static_key xt_tee_enabled __read_mostly;
+//struct static_key xt_tee_enabled __read_mostly;
 struct ipt_ip {
 	/* Source and destination IP addr */
 	struct in_addr src, dst;
