@@ -5,8 +5,21 @@
 #include <linux/ip.h>
 #include <linux/icmp.h>
 #include "ip_tables.h"
+#include <linux/netdevice.h>
+#include <linux/ip.h>
 
+#define LL_MAX_HEADER 128
 
+#define __GFP_HIGH		0x20u
+#define __GFP_ATOMIC		0x80000u
+#define __GFP_KSWAPD_RECLAIM	0x2000000u
+#define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
+
+/* IP flags. */
+#define IP_CE		0x8000		/* Flag: "Congestion"		*/
+#define IP_DF		0x4000		/* Flag: "Don't Fragment"	*/
+#define IP_MF		0x2000		/* Flag: "More Fragments"	*/
+#define IP_OFFSET	0x1FFF		/* "Fragment Offset" part	*/
 
 static struct in_addr get_in_addr(__be32 addr){
     struct in_addr ret;
@@ -45,52 +58,78 @@ unsigned short in_cksum(unsigned short *addr, int len)
 int main(int argc, char* argv[]){
     printf("Starting\n");
     struct sk_buff *packet;
-    
-    printf("Making sk_buff\n");
-    packet = (struct sk_buff) malloc(sizeof(struct iphdr) + sizeof(struct icmphdr)); //TODO: FIx;
+    struct iphdr *newip;
+    //struct udphdr *newudp;
 
-    packet->next = void;
-    packet->prev = void;
-    
+    printf("Making sk_buff\n");
+    packet = alloc_skb(LL_MAX_HEADER + sizeof(struct iphdr*) + 0x08 + 0x00, GFP_ATOMIC); //https://ubuntuforums.org/showthread.php?t=1852227
+
+	if (skb_linearize(packet) < 0)
+        return NF_DROP;
+    skb_reserve(packet, LL_MAX_HEADER); //skb_reserve sets the data pointer, and re-zeros the tail
+
+	skb_reset_network_header(packet);
+
+    newip = (void *)skb_put(packet, sizeof(struct iphdr*)); //skb_put sets the tail for iphdr
+    newip->version  = IPVERSION;
+    newip->ihl      = sizeof(struct iphdr) / 4;
+    newip->tos      = 0;
+    newip->id       = 0;
+    newip->frag_off = htons(IP_DF);
+    newip->protocol = IPPROTO_UDP;
+    newip->check    = 0;
+    newip->saddr    = htonl(0xC0A80101);
+    newip->daddr    = htonl(0xC0A80102);
+
+//    newudp = (void *)skb_put(packet, sizeof(struct udphdr)); //skb_put re-sets the tail for udphdr
+//
+//    newudp->source = htons(0x1234); //4660
+//    newudp->dest   = htons(0x1235); //4661
+//    newudp->len    = htons(sizeof(struct udphdr));
+//    newudp->check  = 0;
+
+
+
     printf("Making nf_hook_state\n");
+//    struct nf_hook_state {
+//    	unsigned int hook;
+//    	u_int8_t pf;
+//    	struct net_device *in;
+//    	struct net_device *out;
+//    	struct sock *sk;
+//    	struct net *net;
+//    	int (*okfn)(struct net *, struct sock *, struct sk_buff *);
+//    }
+//	nf_inet_hooks
+//		NF_INET_PRE_ROUTING,
+//		NF_INET_LOCAL_IN,
+//		NF_INET_FORWARD,
+//		NF_INET_LOCAL_OUT,
+//		NF_INET_POST_ROUTING,
+//		NF_INET_NUMHOOKS
+
+	enum {
+		NFPROTO_UNSPEC =  0,
+		NFPROTO_INET   =  1,
+		NFPROTO_IPV4   =  2,
+		NFPROTO_ARP    =  3,
+		NFPROTO_NETDEV =  5,
+		NFPROTO_BRIDGE =  7,
+		NFPROTO_IPV6   = 10,
+		NFPROTO_DECNET = 12,
+		NFPROTO_NUMPROTO,
+	};
+
+    const struct nf_hook_state *state;
+    nf_hook_state_init(&state, NF_INET_LOCAL_IN, NFPROTO_IPV4,packet->dev, NULL, NULL,dev_net(packet->dev), NULL);
 
     printf("Making xt_table\n");
 
-    bool packet_pass;
-    struct iphdr *ip;
-    char *dst_addr="192.168.1.2";
-    char *src_addr="192.168.1.3";
-    ip = (struct iphdr*) malloc(sizeof(struct iphdr) + sizeof(struct icmphdr));
-    ip->ihl         = 5;
-    ip->version     = 4;
-    ip->tot_len     = sizeof(struct iphdr) + sizeof(struct icmphdr);
-    ip->protocol    = IPPROTO_ICMP;
-    ip->saddr       = inet_addr(src_addr);
-    ip->daddr       = inet_addr(dst_addr);
-    ip->check = in_cksum((unsigned short *)ip, sizeof(struct iphdr)); 
 
-    //The rule
-    struct ipt_ip *ipinfo;
-    ipinfo = (struct ipt_ip*) malloc(sizeof(struct ipt_ip));
-    ipinfo->proto   = 0;  //Protocol. 0=Any
-    ipinfo->src     = get_in_addr(ip->saddr);
-    ipinfo->dst     = get_in_addr(ip->daddr);
-    //SEE REF_FLAGS Below
-    //ipinfo->flags
-    //ipinfo->invflags
-    ipinfo->smsk    = get_in_addr(inet_addr("255.255.255.255"));
-    ipinfo->dmsk    = get_in_addr(inet_addr("255.255.255.255"));
-    // ipinfo->iniface
-    // ipinfo->outiface
-    // ipinfo->iniface_mask
-    // ipinfo->outiface_mask
 
-    char* indev = "eth0";
-    char* outdev = "eth0";
-
-    packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, false);
-    printf("Result: ");
-    printf(packet_pass ? "True\n" : "False\n");
+	int result;
+    result = ipt_do_table(packet, state, table); // ipt_do_table(struct sk_buff *skb,const struct nf_hook_state *state,struct xt_table *table);
+    printf("Result: %d",result);
     printf("End\n");
 }
 /* REF_FLAGS
