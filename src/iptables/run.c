@@ -107,7 +107,6 @@ int main(int argc, char* argv[]){
 //		NF_INET_LOCAL_OUT,
 //		NF_INET_POST_ROUTING,
 //		NF_INET_NUMHOOKS
-
 	enum {
 		NFPROTO_UNSPEC =  0,
 		NFPROTO_INET   =  1,
@@ -128,7 +127,7 @@ int main(int argc, char* argv[]){
 
 
 	int result;
-    result = ipt_do_table(packet, state, table); // ipt_do_table(struct sk_buff *skb,const struct nf_hook_state *state,struct xt_table *table);
+    //result = ipt_do_table(packet, state, newinfo); // ipt_do_table(struct sk_buff *skb,const struct nf_hook_state *state,struct xt_table *table);
     printf("Result: %d",result);
     printf("End\n");
 }
