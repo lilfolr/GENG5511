@@ -9,7 +9,7 @@ all: run.o
 	gcc -shared run.o interface_wrap.o -o _iptables_sim.so
 
 run.o: iptables.o
-	$(CC) -c run.c ip_tables.o -o run.o
+	$(CC) -fPIC -c run.c ip_tables.o -o run.o
 
 iptables.o:
 	$(CC) $(CFLAGS) ip_tables.c -I$(IDIR)
@@ -22,4 +22,4 @@ build-test: run
 	$(CC) -o test test.tmp.c $(LIBS)
 
 clean:
-	rm -f *.o *.so run test test.tmp.c
+	rm -f *.o *.so run test test.tmp.c interface_wrap.c iptables_sim.py
