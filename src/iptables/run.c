@@ -45,7 +45,7 @@ unsigned short in_cksum(unsigned short *addr, int len)
     answer = ~sum;              /* truncate to 16 bits */
     return (answer);
 }
-int main(int argc, char* argv[]){
+int amain(int argc, char* argv[]){
     printf("Starting\n");
     bool packet_pass;
     struct iphdr *ip;
@@ -84,6 +84,12 @@ int main(int argc, char* argv[]){
     printf(packet_pass ? "True\n" : "False\n");
     printf("End");
 }
+
+int test_func(){
+    return true;
+}
+
+
 /* REF_FLAGS
 // /* Values for "flag" field in struct ipt_ip (general ip structure). */
 // #define IPT_F_FRAG		0x01	/* Set if rule is a fragment rule */
