@@ -3,8 +3,7 @@
 %{
 /* Put header files here or function declarations like below */
 typedef struct in_packets{
-	int ihl;
-	int version;
+    int ttl;
 	int protocol;
 	char* dst_addr;
 	char* src_addr;
@@ -21,14 +20,12 @@ typedef struct in_rules{
 extern int run_sim(in_packet *packet, in_rule *rule);
 %}
 typedef struct in_packets{
-	int ihl;
-	int version;
+    int ttl;
 	int protocol;
 	char* dst_addr;
 	char* src_addr;
 } in_packet;
 
-// Input struct for defining our rule
 typedef struct in_rules{
 	int protocol;
 	char* src_addr;
@@ -36,4 +33,5 @@ typedef struct in_rules{
 	char* indev;
 	char* outdev;
 } in_rule;
+
 extern int run_sim(in_packet *packet, in_rule *rule);
