@@ -9,8 +9,6 @@
 #include <linux/icmp.h>
 #include "ip_tables.c"
 
-
-
 static struct in_addr get_in_addr(__be32 addr){
     struct in_addr ret;
     ret.s_addr = addr;
@@ -45,7 +43,27 @@ unsigned short in_cksum(unsigned short *addr, int len)
     answer = ~sum;              /* truncate to 16 bits */
     return (answer);
 }
-int amain(int argc, char* argv[]){
+
+// Input struct for defining our packet
+typedef struct in_packets{
+	int ihl;
+	int version;
+	int protocol;
+	char* dst_addr;
+	char* src_addr;
+} in_packet;
+
+// Input struct for defining our rule
+typedef struct in_rules{
+	int protocol;
+	char* src_addr;
+	char* dst_addr;
+	char* indev;
+	char* outdev;
+} in_rule;
+
+// Takes a packet and a rule, and returns True if they match, and False if not
+int run_sim(in_packet *packet, in_rule *rule){
     printf("Starting\n");
     bool packet_pass;
     struct iphdr *ip;
@@ -83,10 +101,6 @@ int amain(int argc, char* argv[]){
     printf("Result: ");
     printf(packet_pass ? "True\n" : "False\n");
     printf("End");
-}
-
-int test_func(){
-    return true;
 }
 
 
