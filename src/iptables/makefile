@@ -14,12 +14,7 @@ run.o: iptables.o
 iptables.o:
 	$(CC) $(CFLAGS) ip_tables.c -I$(IDIR)
 
-test: build-test
-	./test 
-
-build-test: run
-	checkmk test.check > test.tmp.c
-	$(CC) -o test test.tmp.c $(LIBS)
-
 clean:
-	rm -f *.o *.so run test test.tmp.c interface_wrap.c iptables_sim.py
+	rm -f *.o *.so *.pyc 
+	rm -f test test.tmp.c 
+	rm -f interface_wrap.c iptables_sim.py
