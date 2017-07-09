@@ -22,7 +22,7 @@ save_results () : json results
 
 """
 
-import os
+import os, sys
 
 import socketio
 from aiohttp import web
@@ -30,9 +30,12 @@ from application import *
 
 if os.name == 'nt':
     base_index = '..\\1_GUI\\'
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], "..\\iptables\\")))
 else:
     base_index = '../1_GUI/'
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], "../iptables/")))
 
+import iptables_sim_interface as ip
 sio = socketio.AsyncServer()
 app = web.Application()
 sio.attach(app)
