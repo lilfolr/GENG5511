@@ -1,5 +1,0 @@
-#include <check.h>
-
-#test packet_blocked
-//TODO - create tests
-  fail_unless(1==1, "Sample test");
