@@ -66,7 +66,7 @@ typedef struct in_rules{
 
 // Takes a packet and a rule, and returns True if they match, and False if not
 int run_sim(in_packet *packet, in_rule *rule){
-    printf("Starting\n");
+    //printf("Starting\n");
     bool packet_pass;
 
     //The Packet
@@ -108,9 +108,10 @@ int run_sim(in_packet *packet, in_rule *rule){
 
 
     packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, false);
-    printf("Result: ");
+    //printf("Result: ");
     printf(packet_pass ? "True\n" : "False\n");
-    printf("End");
+    return (int) packet_pass;
+    //printf("End");
 }
 
 
