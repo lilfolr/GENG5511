@@ -23,7 +23,7 @@ save_results () : json results
 """
 
 import os, sys
-
+import logging
 import socketio
 from aiohttp import web
 from application import *
@@ -35,11 +35,16 @@ else:
     base_index = '../1_GUI/'
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], "../iptables/")))
 
-import iptables_sim_interface as ip
+#import iptables_sim_interface as ip
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 sio = socketio.AsyncServer()
 app = web.Application()
 sio.attach(app)
 
+active_users = {}}
 
 async def index(request):
     """Serve the client-side application."""
@@ -49,7 +54,8 @@ async def index(request):
 
 @sio.on('connect', namespace='')
 def connect(sid, environ):
-    print("connect ", sid)
+    logger.info("{} connected ".format(sid))
+    active_users[sid] = Application()
 
 
 @sio.on('chat message', namespace='')
@@ -60,11 +66,21 @@ async def message(sid, data):
     else:
         await sio.emit('reply', room=sid)
 
+@sio.on('create node', namespace='')
+async def create_node(sid, data):
+    check_user(sid)
+    active_users
+    app
 
 @sio.on('disconnect', namespace='')
 def disconnect(sid):
-    print('disconnect ', sid)
+    logger.info('{} disconnected '.format(sid))
+    active_users.pop(sid)
 
+
+def check_user(sid):
+    if not sid in active_users:
+        raise Exception("User not active")
 
 app.router.add_static('/css', base_index + 'css')
 app.router.add_static('/js', base_index + 'js')
