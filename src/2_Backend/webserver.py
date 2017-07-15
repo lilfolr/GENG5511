@@ -39,6 +39,7 @@ else:
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
 
 sio = socketio.AsyncServer()
 app = web.Application()
@@ -59,27 +60,36 @@ def connect(sid, environ):
     active_users[sid] = Application()
 
 
-@sio.on('chat message', namespace='')
-async def message(sid, data):
-    print("message ", data)
-    if data == 'er':
-        await sio.emit('error', data="Test", room=sid)
-    else:
-        await sio.emit('reply', room=sid)
-
-
 @sio.on('create-node', namespace='')
 async def create_node(sid, data):
     logger.debug("Creating node.")
     try:
         check_user(sid)
         node_id = data
-        new_node_id = active_users[sid].create_node(node_id)
+        active_users[sid].create_node(node_id)
     except Exception as e:
-        return "Error creating node - "+str(e)
+        return ["E", "Error creating node - "+str(e)]
     else:
-        return 'Success'
+        return ["S","Node Created"]
 
+
+@sio.on('delete-node', namespace='')
+async def delete_node(sid, data):
+    logger.debug("Deleting node.")
+    try:
+        check_user(sid)
+        node_id = data
+        active_users[sid].destroy_node(node_id)
+    except Exception as e:
+        return ["E", "Error deleting node - "+str(e)]
+    else:
+        return ["S","Node deleted "]
+
+
+@sio.on('update-status-table', namespace='')
+async def update_status_table_def(sid, data):
+    await update_status_table(sid)
+    return ["N"]
 
 @sio.on('disconnect', namespace='')
 def disconnect(sid):
@@ -90,6 +100,18 @@ def disconnect(sid):
 def check_user(sid):
     if sid not in active_users:
         raise Exception("User not active")
+
+async def update_status_table(sid):
+    toreturn = []
+    for node_id, node_data in active_users[sid].current_nodes.items():
+        toreturn.append({
+            "Node_ID": node_id,
+            "Packets_In": '0',
+            "Packets_In_Block": '0',
+            "Packets_Out": '0',
+            "Packets_Out_Block": '0',
+        })
+    await sio.emit('update-table', data=toreturn, room=sid)
 
 
 app.router.add_static('/css', base_index + 'css')
