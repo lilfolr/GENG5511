@@ -21,37 +21,19 @@ function alert_msg(msg, level, timeout) {
         Materialize.toast(msg, timeout || 5000, "blue");
     }
 }
-var current_node_id = 1;
-var current_edge_id = 0;
+var current_node_id = -1;
+var current_edge_id = -1;
 var nodes
 var edges
 $(function() {
     // SETUP NETWORK
     var nodeDetails;
 
-    app.$data.nodes= [{
-        id: 0,
-        label: 'Client 1',
-        shape: 'circle',
-        type: "C",
-        color: node_color(0, 1),
-        committed: true
-    }, {
-        id: 1,
-        label: 'Server 1',
-        shape: 'circle',
-        type: "S",
-        color: node_color(1, 0),
-        committed: true
-    }];
+    app.$data.nodes= [];
 	nodeDetails = app.$data.nodes;
     nodes = new vis.DataSet(nodeDetails);
 
-    app.$data.edges = [{
-        id: 0,
-        from: 0,
-        to: 1
-    }];
+    app.$data.edges = [];
     edges = new vis.DataSet(app.$data.edges);
     // create a network
     var container = document.getElementById('firewall_network');
@@ -108,8 +90,6 @@ $(function() {
             alert_msg('Select a node first', 'warning');
         }
     });
-
- 
 
     $("#form_node_new").submit(function(e) {
         e.preventDefault();

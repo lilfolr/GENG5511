@@ -85,35 +85,7 @@ app = new Vue({
             packet: false,
             firewall: false
         },
-        tableData: [{
-            Node_ID: '0',
-            Node_Name: 'Client 1',
-            Packets_In: '100',
-            Packets_In_Block: '30',
-            Packets_Out: '30',
-            Packets_Out_Block: '2',
-          }, {
-            Node_ID: '1',
-            Node_Name: 'Client 2',
-            Packets_In: '10',
-            Packets_In_Block: '0',
-            Packets_Out: '30',
-            Packets_Out_Block: '2',
-          }, {
-            Node_ID: '2',
-            Node_Name: 'Server 1',
-            Packets_In: '10',
-            Packets_In_Block: '3',
-            Packets_Out: '30',
-            Packets_Out_Block: '0',
-          }, {
-            Node_ID: '3',
-            Node_Name: 'Server 2',
-            Packets_In: '300',
-            Packets_In_Block: '20',
-            Packets_Out: '360',
-            Packets_Out_Block: '0',
-          }]
+        tableData: []
     },
 
     mounted : function()
@@ -179,6 +151,9 @@ app = new Vue({
             }
         },
         handleSelect: function(key, keyPath) {
+            if (key=="3"){
+                websocket_run('update-status-table', "loud", ()=>{});
+            }
             if (key=="2-1"){
                 this.clear_selected_node();
                 this.open_side_bar();
@@ -196,6 +171,7 @@ app = new Vue({
                     websocket_run('delete-node', id, function() {
                         network.deleteSelected();
                         this.nodes[id] = null;
+                        websocket_run('update-status-table');
                     }); 
                 }
                 this.clear_selected_node();
