@@ -20,10 +20,28 @@ Containers
 - 1 container per node
 - Respond to backend reqs.
 
-Running the application:
+iptables
+--------
+- Contains modified iptables source
+- Used for simulating firewall configs
 
-* `cd src/2_Backend`<br/>
-* `source env/bin/activate` - Assuming you've got a virtualenv setup, with requirements installed </br>
-* `python webserver.py`
+Requirements
+------------
+* Python 3.5 [python3.5]
+* Python 3.5 headers [python3.5-dev]
 
-* build container with `docker build -t alpine_ipt .`
+Install & Run:
+--------------
+
+### Compile iptables
+`cd src/iptables`  
+`make`
+
+### Run webserver
+`cd src/2_Backend`  
+`source env/bin/activate` - Assuming you've got a virtualenv setup, with requirements installed  
+`python webserver.py`
+
+### Docker container [if used]
+
+build with `docker build -t alpine_ipt .`
