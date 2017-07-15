@@ -17,6 +17,7 @@
 #include <linux/ip.h>
 #include <linux/icmp.h>
 #include "ip_tables.h"
+#include <stdio.h>
 
 static inline unsigned long ifname_compare_aligned(const char *_a,
 						   const char *_b,
@@ -43,37 +44,55 @@ ip_packet_match(const struct iphdr *ip,
 		const char *indev,
 		const char *outdev,
 		const struct ipt_ip *ipinfo,
-		int isfrag)
+		int isfrag,
+		int debug)
 {
+	// If any portion doesn't match the rule we return false
 	unsigned long ret;
-
+	if (debug)
+		printf("> 1 Checking src & dst matches rule\n");
 	if (NF_INVF(ipinfo, IPT_INV_SRCIP,
 		    (ip->saddr & ipinfo->smsk.s_addr) != ipinfo->src.s_addr) ||
 	    NF_INVF(ipinfo, IPT_INV_DSTIP,
 		    (ip->daddr & ipinfo->dmsk.s_addr) != ipinfo->dst.s_addr))
 		return false;
-
+	if (debug){
+		printf("> 1 Passed\n");
+		printf("> 2 Checking in interface matches rule\n");
+	}
 	ret = ifname_compare_aligned(indev, ipinfo->iniface, ipinfo->iniface_mask);
 
 	if (NF_INVF(ipinfo, IPT_INV_VIA_IN, ret != 0))
 		return false;
-
+	if (debug){
+		printf("> 2 Passed\n");
+		printf("> 3 Checking out interface matches rule\n");
+	}
 	ret = ifname_compare_aligned(outdev, ipinfo->outiface, ipinfo->outiface_mask);
 
 	if (NF_INVF(ipinfo, IPT_INV_VIA_OUT, ret != 0))
 		return false;
-
+	if (debug){
+		printf("> 3 Passed\n");
+		printf("> 4 Checking protocol matches rule\n");
+	}
 	/* Check specific protocol */
 	if (ipinfo->proto &&
 	    NF_INVF(ipinfo, IPT_INV_PROTO, ip->protocol != ipinfo->proto))
 		return false;
-
+	if (debug){
+		printf("> 4 Passed\n");
+		printf("> 5 Checking for fragments\n");
+	}	
 	/* If we have a fragment rule but the packet is not a fragment
 	 * then we return zero */
 	if (NF_INVF(ipinfo, IPT_INV_FRAG,
 		    (ipinfo->flags & IPT_F_FRAG) && !isfrag))
 		return false;
-
+	if (debug){
+		printf("> 5 Passed\n");
+		printf("> Rule matches packet\n");
+	}	
 	return true;
 }
 
