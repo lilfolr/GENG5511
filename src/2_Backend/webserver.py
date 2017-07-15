@@ -22,20 +22,10 @@ save_results () : json results
 
 """
 
-import os, sys
 import logging
 import socketio
 from aiohttp import web
 from application import *
-
-if os.name == 'nt':
-    base_index = '..\\1_GUI\\'
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], "..\\iptables\\")))
-else:
-    base_index = '../1_GUI/'
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], "../iptables/")))
-
-# import iptables_sim_interface as ip
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -53,13 +43,19 @@ async def index(request):
     with open(base_index + 'index.html') as f:
         return web.Response(text=f.read(), content_type='text/html')
 
+# ======================== CONTROL ========================
 
 @sio.on('connect', namespace='')
 def connect(sid, environ):
     logger.info("{} connected ".format(sid))
     active_users[sid] = Application()
 
+@sio.on('disconnect', namespace='')
+def disconnect(sid):
+    logger.info('{} disconnected '.format(sid))
+    active_users.pop(sid)
 
+# ======================== NODES ========================
 @sio.on('create-node', namespace='')
 async def create_node(sid, data):
     logger.debug("Creating node.")
@@ -71,7 +67,6 @@ async def create_node(sid, data):
         return ["E", "Error creating node - "+str(e)]
     else:
         return ["S","Node Created"]
-
 
 @sio.on('delete-node', namespace='')
 async def delete_node(sid, data):
@@ -85,16 +80,37 @@ async def delete_node(sid, data):
     else:
         return ["S","Node deleted "]
 
+@sio.on('add-edge', namespace='')
+async def connect_nodes(sid, data):
+    try:
+        check_user(sid)
+        active_users[sid].connect_nodes(data[0], data[1])
+    except expression as identifier:
+        return ["E", "Error connecting nodes - "+str(e)]
+    else:
+        return ["S","Nodes connected "]
 
 @sio.on('update-status-table', namespace='')
 async def update_status_table_def(sid, data):
     await update_status_table(sid)
+    print(data)
+    if data=="loud":
+        return ["S","Table update triggered"]
+    # Quite update
     return ["N"]
 
-@sio.on('disconnect', namespace='')
-def disconnect(sid):
-    logger.info('{} disconnected '.format(sid))
-    active_users.pop(sid)
+# ======================== FIREWALL ========================
+
+@sio.on('get-firewall', namespace='')
+async def get_firewall(sid, node_id):
+    try:
+        check_user(sid)
+        firewall = active_users[sid].get_node_firewall(node_id)
+        
+    except expression as identifier:
+        return ["E", "Error getting firewall - "+str(e)]
+    else:
+        return ["S","Nodes connected "]
 
 
 def check_user(sid):
