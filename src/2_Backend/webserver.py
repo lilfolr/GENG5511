@@ -35,16 +35,17 @@ else:
     base_index = '../1_GUI/'
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], "../iptables/")))
 
-#import iptables_sim_interface as ip
+# import iptables_sim_interface as ip
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 sio = socketio.AsyncServer()
 app = web.Application()
 sio.attach(app)
 
-active_users = {}}
+active_users = {}
+
 
 async def index(request):
     """Serve the client-side application."""
@@ -61,16 +62,24 @@ def connect(sid, environ):
 @sio.on('chat message', namespace='')
 async def message(sid, data):
     print("message ", data)
-    if data=='er':
-        await sio.emit('error',data="Test", room=sid)
+    if data == 'er':
+        await sio.emit('error', data="Test", room=sid)
     else:
         await sio.emit('reply', room=sid)
 
-@sio.on('create node', namespace='')
+
+@sio.on('create-node', namespace='')
 async def create_node(sid, data):
-    check_user(sid)
-    active_users
-    app
+    logger.debug("Creating node.")
+    try:
+        check_user(sid)
+        node_id = data
+        new_node_id = active_users[sid].create_node(node_id)
+    except Exception as e:
+        return "Error creating node - "+str(e)
+    else:
+        return 'Success'
+
 
 @sio.on('disconnect', namespace='')
 def disconnect(sid):
@@ -79,8 +88,9 @@ def disconnect(sid):
 
 
 def check_user(sid):
-    if not sid in active_users:
+    if sid not in active_users:
         raise Exception("User not active")
+
 
 app.router.add_static('/css', base_index + 'css')
 app.router.add_static('/js', base_index + 'js')

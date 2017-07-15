@@ -37,11 +37,23 @@ socket.on('error', function(er){
  */
 function websocket_run(func, data, succ_func){
 	app.$data.loading=true;
-    // Timeout to simluate network
-    setTimeout(function(){
-        console.log('Running '+func+' with data '+data);
-        socket.emit(func,data)
-    	  app.$data.loading=false;
-        succ_func()
-    },1000)
+    console.log('Running '+func+' with data '+data);
+    socket.emit(func,data, (data) => {
+      console.log(data)
+      if (data=="Success"){
+        succ_func();
+        app.$message({
+          message: data,
+          type: 'info'
+        });
+      }
+      else
+        app.$notify({
+          title: 'An error occured',
+          message: data,
+          type: 'error'
+        });
+    	app.$data.loading=false;
+    }
+  );
 }
