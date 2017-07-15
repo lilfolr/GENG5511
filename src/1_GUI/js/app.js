@@ -196,11 +196,6 @@ app = new Vue({
                     websocket_run('delete-node', id, function() {
                         network.deleteSelected();
                         this.nodes[id] = null;
-                        this.$notify({
-                          title: 'Node deleted',
-                          message: 'Node has been removed',
-                          type: 'info'
-                      });
                     }); 
                 }
                 this.clear_selected_node();
@@ -272,6 +267,7 @@ app = new Vue({
                         easingFunction: "easeInQuad"
                     }
                 });
+                websocket_run('update-status-table');
             });
             this.clear_selected_node();
         },

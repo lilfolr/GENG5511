@@ -24,6 +24,13 @@ socket.on('error', function(er){
   });
 })
 
+socket.on('update-table', function(table_data){
+  for (i=0;i<table_data.length;i++){
+    table_data[i].Node_Name = app.$data.nodes[table_data[i].Node_ID].label
+  }
+  app.$data.tableData=table_data
+})
+
 /**
  * Possible methods include:
  * create-node
@@ -39,18 +46,20 @@ function websocket_run(func, data, succ_func){
 	app.$data.loading=true;
     console.log('Running '+func+' with data '+data);
     socket.emit(func,data, (data) => {
+      status = data[0];
+      msg = data[1];
       console.log(data)
-      if (data=="Success"){
+      if (status=="S"){
         succ_func();
         app.$message({
-          message: data,
+          message: msg,
           type: 'info'
         });
       }
-      else
+      else if (status=="E")
         app.$notify({
           title: 'An error occured',
-          message: data,
+          message: msg,
           type: 'error'
         });
     	app.$data.loading=false;
