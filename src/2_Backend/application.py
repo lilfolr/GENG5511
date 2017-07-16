@@ -45,8 +45,52 @@ class Application(object):
             self.node_connections.append((node_1, node_2))
 
     def get_node_firewall(self, node_id):
-        return ["S",""]#self.current_nodes[node_id]["firewall"]
+        example_return = {
+            "INPUT":[
+                {
+                    "input_device" : "ANY",
+                    "output_device": "ANY",
+                    "protocol": "ANY",
+                    "src": "ANY",
+                    "dst": "ANY",
+                    "match_chain": "DROP",
+                }
+            ],
+            "OUTPUT":[
+                {
+                    "input_device": "eth0",
+                    "output_device": "ANY",
+                    "protocol": "ANY",
+                    "src": "ANY",
+                    "dst": "ANY",
+                    "match_chain": "DROP",
+                }
+            ],
+            "FORWARD":[
+                {
+                    "input_device": "eth0",
+                    "output_device": "eth0",
+                    "protocol": "TCP",
+                    "src": "ANY",
+                    "dst": "ANY",
+                    "match_chain": "DROP",
+                },
+                {
+                    "input_device": "eth0",
+                    "output_device": "ANY",
+                    "protocol": "UDP",
+                    "src": "ANY",
+                    "dst": "ANY",
+                    "match_chain": "REJECT",
+                },
+            ],
+        }
 
+        return example_return
+    
+        #self.current_nodes[node_id]["firewall"]
+
+        
     def cleanup(self):
         """
         Cleanup before removing application

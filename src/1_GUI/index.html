@@ -55,6 +55,7 @@
                 <el-menu-item index="2-3">Connect Nodes</el-menu-item>
             </el-submenu>
               <el-menu-item index="3">Refresh data table</el-menu-item>
+              <el-menu-item index="4"><i class="el-icon-caret-right"></i>Run Simulation</el-menu-item>
             </el-menu>
         </div>
 
@@ -109,31 +110,105 @@
     </el-menu>
 
 <!-- Firewall Modal -->
-        <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" size="large">
-          <el-form>
-            <el-form-item label="Firewall Type">
-                <el-select v-model="selected_node.firewall.type" placeholder="Firewall Type">
-                    <el-option v-for="item in firewall_options.type" :key="item" :label="item" :value="item"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="Current Rules:">
-            <el-input class="code" readonly type="textarea" autosize placeholder="Please input" v-html="selected_node.firewall.current_rules">
-            </el-input>
-            </el-form-item>
-            <el-radio-group v-model="selected_node.firewall.clear_current">
-              <el-radio-button label="Clear"></el-radio-button>
-              <el-radio-button label="Append"></el-radio-button>
-            </el-radio-group>
-            <el-form-item label="Add rules:">
-              <el-input class="code" type="textarea" autosize placeholder="Rules here" v-model="selected_node.firewall.new_rules">
-              </el-input>
-            </el-form-item>
-          </el-form>  
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="form_visible.firewall = false">Cancel</el-button>
-            <el-button type="primary" @click="form_visible.firewall = false">Confirm</el-button>
-          </span>
-        </el-dialog>
+    <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" size="large">
+    <el-form>
+        <el-form-item label="Firewall Type">
+            <el-select v-model="selected_node.firewall.type" placeholder="Firewall Type">
+                <el-option v-for="item in firewall_options.type" :key="item" :label="item" :value="item"></el-option>
+            </el-select>
+        </el-form-item>
+        <h3>Current Rules</h3>
+        <el-tree :data="selected_node.firewall.current_rules" ref="tree" show-checkbox="" node-key="id" children='children' label='label'>
+        </el-tree>
+        <br/>
+        <el-button>Delete Selected</el-button>
+        <h3>Add Rule</h3>
+		<el-form-item>
+            <el-row>
+                <el-col :span="2">
+                <span>Input Device</span>
+                </el-col>
+                <el-col :span="1">
+                    <el-checkbox v-model="selected_node.firewall.new_rule.input_device.any">Any</el-checkbox>
+                </el-col>
+                <el-col :span="4">
+                    <el-input placeholder="eth0" v-model="selected_node.firewall.new_rule.input_device.value" :disabled="selected_node.firewall.new_rule.input_device.any"></el-input>
+                </el-col>
+            </el-row>
+        </el-form-item>
+        <el-form-item>
+            <el-row>
+                <el-col :span="2">
+                <span>Output Device</span>
+                </el-col>
+                <el-col :span="1">
+                    <el-checkbox v-model="selected_node.firewall.new_rule.output_device.any">Any</el-checkbox>
+                </el-col>
+                <el-col :span="4">
+                    <el-input placeholder="eth0" v-model="selected_node.firewall.new_rule.output_device.value" :disabled="selected_node.firewall.new_rule.output_device.any"></el-input>
+                </el-col>
+            </el-row>
+        </el-form-item>
+        <el-form-item>
+            <el-row>
+                <el-col :span="2">
+                <span>Protocol</span>
+                </el-col>
+                <el-col :span="1">
+                    <el-checkbox v-model="selected_node.firewall.new_rule.protocol.any">Any</el-checkbox>
+                </el-col>
+                <el-col :span="4">
+                    <el-select v-model="selected_node.firewall.new_rule.protocol.value" placeholder="Protocol" :disabled="selected_node.firewall.new_rule.protocol.any">
+                        <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                    </el-select>
+                </el-col>
+            </el-row>
+        </el-form-item>
+        <el-form-item>
+            <el-row>
+                <el-col :span="2">
+                <span>Source</span>
+                </el-col>
+                <el-col :span="1">
+                    <el-checkbox v-model="selected_node.firewall.new_rule.src.any">Any</el-checkbox>
+                </el-col>
+                <el-col :span="4">
+                    <el-input placeholder="10.1.1.1" v-model="selected_node.firewall.new_rule.src.value" :disabled="selected_node.firewall.new_rule.src.any"></el-input>
+                </el-col>
+            </el-row>
+        </el-form-item>
+        <el-form-item>
+            <el-row>
+                <el-col :span="2">
+                <span>Destination</span>
+                </el-col>
+                <el-col :span="1">
+                    <el-checkbox v-model="selected_node.firewall.new_rule.dst.any">Any</el-checkbox>
+                </el-col>
+                <el-col :span="4">
+                    <el-input placeholder="10.1.1.2" v-model="selected_node.firewall.new_rule.dst.value" :disabled="selected_node.firewall.new_rule.dst.any"></el-input>
+                </el-col>
+            </el-row>
+        </el-form-item>
+        <el-form-item>
+            <el-row>
+                <el-col :span="2">
+                    <span>Match Chain</span>
+                </el-col>
+                <el-col :span="4">
+                    <el-select @change="refresh_firewall_dialog" allow-create v-model="selected_node.firewall.new_rule.chain" filterable placeholder="Current Chains">
+                        <el-option v-for="item in selected_node.firewall.current_rules" :key="item.id" :label="item.label" :value="item.label"></el-option>
+                    </el-select>                
+                </el-col>
+            </el-row>
+        </el-form-item>
+        <br/>
+        <el-button>Add Rule</el-button>
+    </el-form>
+    <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="form_visible.firewall = false">Close</el-button>
+    </span>
+    </el-dialog>
 
         <!-- Packet Modal -->
         <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="large">

@@ -76,24 +76,8 @@ $(function() {
         }
     }
 
-    function load_firewall_dialog(node_id) {
-        websocket_run('get-firewall', node_id, function(){
-            $('#firewall_modal').modal('open');
-        });
-    }
-
-    $('#node_details_firewall').click(function(){
-        if (network.getSelectedNodes().length == 1) {
-            node_id = network.getSelectedNodes()[0];
-            load_firewall_dialog(node_id);
-        } else {
-            alert_msg('Select a node first', 'warning');
-        }
-    });
-
     $("#form_node_new").submit(function(e) {
         e.preventDefault();
-        
     });
 
     network.on("click", function(params) {

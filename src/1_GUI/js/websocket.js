@@ -46,11 +46,17 @@ function websocket_run(func, data, succ_func){
 	app.$data.loading=true;
     console.log('Running '+func+' with data '+data);
     socket.emit(func,data, (data) => {
+      console.log(data)
+      if (typeof data === 'undefined'){
+        data = ["S", ""]
+      }
       status = data[0];
       msg = data[1];
-      console.log(data)
       if (status=="S"){
+        if (data.length>2)
+          succ_func(data[2]);
         succ_func();
+        if (msg!=="")
         app.$message({
           message: msg,
           type: 'info'

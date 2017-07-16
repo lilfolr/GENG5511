@@ -32,9 +32,45 @@ app = new Vue({
             },
             firewall:{
                 type: "",
-                current_rules: "-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT ",
-                clear_current: "Clear",
-                new_rules: ""
+                current_rules: [
+                    {
+                        id: 1,
+                        label: 'INPUT ',
+                        children: [{
+                            id: 4,
+                            label: 'Rule 1',
+                        },
+                        {
+                            id: 3,
+                            label: 'Rule 2',
+                            },
+                        ]
+                    }   
+                ],
+                new_rule: {
+                    input_device:{
+                        any: true,
+                        value: ""
+                    },
+                    output_device:{
+                        any: true,
+                        value: ""
+                    },
+                    protocol:{
+                        any: true,
+                        value: ""
+                    },
+                    src:{
+                        any: true,
+                        value: ""
+                    },
+                    dst:{
+                        any: true,
+                        value: ""
+                    },
+                    chain: ""
+
+                }
             }
         },
         nodes: [],
@@ -118,11 +154,46 @@ app = new Vue({
                     corrupt: 0
                 },
                 firewall:{
-                    type: "",
-                    current_rules: "-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT ",
-                    clear_current: "Clear",
-                    new_rules: ""
-                }
+                            type: "",
+                            current_rules: [
+                                {
+                                    id: 1,
+                                    label: 'INPUT ',
+                                    children: [{
+                                        id: 4,
+                                        label: 'Rule 1',
+                                    },
+                                    {
+                                        id: 3,
+                                        label: 'Rule 2',
+                                        },
+                                    ]
+                                }   
+                            ],
+                        new_rule: {
+                            input_device:{
+                                any: true,
+                                value: ""
+                            },
+                            output_device:{
+                                any: true,
+                                value: ""
+                            },
+                            protocol:{
+                                any: true,
+                                value: ""
+                            },
+                            src:{
+                                any: true,
+                                value: ""
+                            },
+                            dst:{
+                                any: true,
+                                value: ""
+                            },
+                            chain: ""
+                        }
+                    }
             }
             this.close_side_bar();
         },
@@ -215,7 +286,7 @@ app = new Vue({
                       type: 'warning'
                   });
                 } else {
-                    websocket_run('get-firewall', node_id, function(){
+                    websocket_run('get-firewall', node_id, function(firewall_data){
                         app.$data.form_visible.firewall=true;
                     });
                 }
@@ -274,6 +345,10 @@ app = new Vue({
                     }
                 });
             this.clear_selected_node();
-        }
+        },
+        refresh_firewall_dialog: function() {
+            this.$emit("el.form.change");
+            this.$emit("change");
+      }
     },
 });

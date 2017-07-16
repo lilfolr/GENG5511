@@ -106,13 +106,11 @@ async def get_firewall(sid, node_id):
     try:
         check_user(sid)
         firewall = active_users[sid].get_node_firewall(node_id)
-        
+        return ["S", "", firewall]
     except expression as identifier:
         return ["E", "Error getting firewall - "+str(e)]
-    else:
-        return ["S","Nodes connected "]
 
-
+@sio.on('update-firewall')
 def check_user(sid):
     if sid not in active_users:
         raise Exception("User not active")
