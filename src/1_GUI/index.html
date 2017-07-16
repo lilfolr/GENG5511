@@ -118,10 +118,10 @@
             </el-select>
         </el-form-item>
         <h3>Current Rules</h3>
-        <el-tree :data="selected_node.firewall.current_rules" ref="tree" show-checkbox="" node-key="id" children='children' label='label'>
+        <el-tree :data="selected_node.firewall.current_rules" v-model="selected_node.firewall.current_rules_tree" ref="tree" show-checkbox="" node-key="id" children='children' label='label'>
         </el-tree>
         <br/>
-        <el-button>Delete Selected</el-button>
+        <el-button @click="delete_firewall_rule">Delete Selected</el-button>
         <h3>Add Rule</h3>
 		<el-form-item>
             <el-row>
@@ -196,7 +196,7 @@
                     <span>Match Chain</span>
                 </el-col>
                 <el-col :span="4">
-                    <el-select @change="refresh_firewall_dialog" allow-create v-model="selected_node.firewall.new_rule.chain" filterable placeholder="Current Chains">
+                    <el-select allow-create v-model="selected_node.firewall.new_rule.chain" filterable placeholder="Current Chains">
                         <el-option v-for="item in selected_node.firewall.current_rules" :key="item.id" :label="item.label" :value="item.label"></el-option>
                     </el-select>                
                 </el-col>

@@ -110,10 +110,16 @@ async def get_firewall(sid, node_id):
     except expression as identifier:
         return ["E", "Error getting firewall - "+str(e)]
 
-@sio.on('update-firewall')
-def check_user(sid):
-    if sid not in active_users:
-        raise Exception("User not active")
+@sio.on('delete-rule')
+def delete_rule(sid, data):
+    try:
+        check_user(sid)
+        node = data[0]
+        rules = data[1]
+        #TODO: Delete firewall = active_users[sid].get_node_firewall(node_id)
+        return ["S", "Rules deleted"]
+    except expression as identifier:
+        return ["E", "Error deleting rules - "+str(e)]
 
 async def update_status_table(sid):
     toreturn = []
@@ -127,6 +133,9 @@ async def update_status_table(sid):
         })
     await sio.emit('update-table', data=toreturn, room=sid)
 
+def check_user(sid):
+    if sid not in active_users:
+        raise Exception("User not active")
 
 app.router.add_static('/css', base_index + 'css')
 app.router.add_static('/js', base_index + 'js')

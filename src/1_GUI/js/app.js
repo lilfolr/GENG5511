@@ -34,7 +34,7 @@ app = new Vue({
                 type: "",
                 current_rules: [
                     {
-                        id: 1,
+                        id: "C1",
                         label: 'INPUT ',
                         children: [{
                             id: 4,
@@ -157,7 +157,7 @@ app = new Vue({
                             type: "",
                             current_rules: [
                                 {
-                                    id: 1,
+                                    id: "C1",
                                     label: 'INPUT ',
                                     children: [{
                                         id: 4,
@@ -170,6 +170,7 @@ app = new Vue({
                                     ]
                                 }   
                             ],
+                current_rules_tree: {},
                         new_rule: {
                             input_device:{
                                 any: true,
@@ -346,9 +347,16 @@ app = new Vue({
                 });
             this.clear_selected_node();
         },
-        refresh_firewall_dialog: function() {
-            this.$emit("el.form.change");
-            this.$emit("change");
-      }
+        delete_firewall_rule: function(rule_id){
+            node_id = app.$data.selected_node.id;
+            checked_nodes = app.$refs.tree.getCheckedKeys(); // Array of ids [could inc chain]
+            rules = [];
+            for (i=0;i<checked_nodes.length;i++)
+                if (!String(checked_nodes[i]).startsWith("C"))
+                    rules.push(checked_nodes[i]);
+            websocket_run("delete-rule",[node_id, rules], ()=>{
+               app.load_firewall_dialog();
+            })
+        }
     },
 });
