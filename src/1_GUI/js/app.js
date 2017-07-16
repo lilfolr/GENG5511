@@ -121,7 +121,7 @@ app = new Vue({
             packet: false,
             firewall: false
         },
-        tableData: []
+        tableData: [],
     },
 
     mounted : function()
@@ -156,21 +156,7 @@ app = new Vue({
                 firewall:{
                             type: "",
                             current_rules: [
-                                {
-                                    id: "C1",
-                                    label: 'INPUT ',
-                                    children: [{
-                                        id: 4,
-                                        label: 'Rule 1',
-                                    },
-                                    {
-                                        id: 3,
-                                        label: 'Rule 2',
-                                        },
-                                    ]
-                                }   
                             ],
-                current_rules_tree: {},
                         new_rule: {
                             input_device:{
                                 any: true,
@@ -288,6 +274,7 @@ app = new Vue({
                   });
                 } else {
                     websocket_run('get-firewall', node_id, function(firewall_data){
+                        app.$data.selected_node.firewall.current_rules = firewall_data;
                         app.$data.form_visible.firewall=true;
                     });
                 }

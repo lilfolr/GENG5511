@@ -105,8 +105,23 @@ async def update_status_table_def(sid, data):
 async def get_firewall(sid, node_id):
     try:
         check_user(sid)
+        to_return = []
         firewall = active_users[sid].get_node_firewall(node_id)
-        return ["S", "", firewall]
+        for chain, rules in firewall.items():
+            chain = {
+                "id" : chain,
+                "label": chain,
+                "children": []
+            }
+            for rule in rules:
+                child = {
+                    "id": rule['id'],
+                    "label": "-i {} -o {} -p {} -s {} -d {} -j {}".format(rule["input_device"], rule["output_device"], 
+                                                                           rule["protocol"], rule["src"], rule["dst"], rule["match_chain"])
+                }
+                chain["children"].append(child)
+            to_return.append(chain)
+        return ["S", "", to_return]
     except expression as identifier:
         return ["E", "Error getting firewall - "+str(e)]
 

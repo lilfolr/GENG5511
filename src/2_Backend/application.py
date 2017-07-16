@@ -48,6 +48,7 @@ class Application(object):
         example_return = {
             "INPUT":[
                 {
+                    "id": 0,
                     "input_device" : "ANY",
                     "output_device": "ANY",
                     "protocol": "ANY",
@@ -58,6 +59,7 @@ class Application(object):
             ],
             "OUTPUT":[
                 {
+                    "id": 1,
                     "input_device": "eth0",
                     "output_device": "ANY",
                     "protocol": "ANY",
@@ -68,6 +70,7 @@ class Application(object):
             ],
             "FORWARD":[
                 {
+                    "id": 2,
                     "input_device": "eth0",
                     "output_device": "eth0",
                     "protocol": "TCP",
@@ -76,6 +79,7 @@ class Application(object):
                     "match_chain": "DROP",
                 },
                 {
+                    "id": 3,
                     "input_device": "eth0",
                     "output_device": "ANY",
                     "protocol": "UDP",
