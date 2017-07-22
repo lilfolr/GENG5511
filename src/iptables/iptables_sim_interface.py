@@ -1,5 +1,5 @@
 import iptables_sim
-
+from collections import OrderedDict
 # p=iptables_sim.in_packet()
 # r=iptables_sim.in_rule()
 
@@ -14,12 +14,6 @@ from enum import Enum
 from copy import deepcopy
 
 
-class RuleResults(Enum):
-    ACCEPT = 0
-    DROP = 1
-    REJECT = 2
-
-
 class Rule(object):
     # Convention - None = Any value allowed
     input_device = None
@@ -27,7 +21,7 @@ class Rule(object):
     protocol = None
     src = None
     dst = None
-    match_chain = RuleResults.DROP  # Can either be a chain, or a final rule
+    match_chain = "DROP"  # Can either be a chain, or a final rule
 
     def __str__(self):
         return "{} {} {} {} {} {}".format(self.input_device,
@@ -47,37 +41,47 @@ class IPTables(object):
 
     def __init__(self):
         # Start with 3 chains; INPUT FORWARD OUTPUT
-        self.chains = {}
+        self.chains = OrderedDict()
         self.base_chains = ["INPUT", "FORWARD", "OUTPUT"]
+        self.base_rules  = ["ACCEPT", "REJECT", "DROP"]
         for chain in self.base_chains:
             self.create_chain(chain)
+        for chain in self.base_rules:
+            self.create_chain(chain, chain)
 
-    def create_chain(self, chain_name, default_policy=RuleResults.DROP):
+    def create_chain(self, chain_name, default_policy="DROP"):
         default_rule = Rule()
         default_rule.match_chain = default_policy
         self.chains[chain_name] = [deepcopy(default_rule)]  # List of rules
 
     def remove_chain(self, chain_name):
-        if chain_name in self.base_chains:
-            raise ValueError("Can not remove base chain")
+        if chain_name in self.base_chains + self.base_rules:
+            raise ValueError("Can not remove base chain/rule")
         try:
             self.chains.pop(chain_name)
         except KeyError:
             print("Chain {} does not exist".format(chain_name))
 
     def add_chain_rule(self, chain_name, ip_rule, index_location=0):
-        chain = self.chains.get(chain_name, None)
+        if chain_name in self.base_rules:
+            raise ValueError("Can not add rules to a base rule")
+        chain = self.chains[chain_name]
         if chain:
             chain.insert(index_location, ip_rule)
         else:
-            print("Chain {} does not exist".format(chain_name))
+            raise ValueError("Chain {} does not exist".format(chain_name))
 
     def remove_chain_rule(self, chain_name, index_location):
+        if chain_name in self.base_rules:
+            raise ValueError("Can not remove rules from a base rule")
         chain = self.chains.get(chain_name, None)
         if chain:
             del chain[index_location]
         else:
-            print("Chain {} does not exist".format(chain_name))
+            raise ValueError("Chain {} does not exist".format(chain_name))
+        if len(chain)==0:
+            self.create_chain(chain_name)
+        
 
     def __str__(self):
         to_return = ""
