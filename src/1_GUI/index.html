@@ -110,54 +110,56 @@
     </el-menu>
 
 <!-- Firewall Modal -->
-    <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" size="large">
+    <el-dialog :title="'Firewall - '+selected_node.label" top="5%" v-model="form_visible.firewall" size="medium">
     <el-form>
-        <el-form-item label="Firewall Type">
+        <!--<el-form-item label="Firewall Type">
             <el-select v-model="selected_node.firewall.type" placeholder="Firewall Type">
                 <el-option v-for="item in firewall_options.type" :key="item" :label="item" :value="item"></el-option>
             </el-select>
-        </el-form-item>
+        </el-form-item>-->
         <h3>Current Rules</h3>
-        <el-tree :data="selected_node.firewall.current_rules" v-model="selected_node.firewall.current_rules_tree" ref="tree" show-checkbox="" node-key="id" children='children' label='label'>
+        <el-tree :data="selected_node.firewall.current_rules" v-model="selected_node.firewall.current_rules_tree" ref="tree" :expand-on-click-node="false" show-checkbox="" node-key="id" children='children' label='label'>
         </el-tree>
-        <br/>
-        <el-button @click="delete_firewall_rule">Delete Selected</el-button>
+        <h3>Delete Rules</h3>
+
+        <el-button @click="delete_firewall_rule">Delete Selected Rules</el-button>
+        &nbsp;<span>Tick rule(s) above to select them for removal</span>
         <h3>Add Rule</h3>
 		<el-form-item>
             <el-row>
-                <el-col :span="2">
+                <el-col :span="6">
                 <span>Input Device</span>
                 </el-col>
-                <el-col :span="1">
+                <el-col :span="4">
                     <el-checkbox v-model="selected_node.firewall.new_rule.input_device.any">Any</el-checkbox>
                 </el-col>
-                <el-col :span="4">
+                <el-col :span="8">
                     <el-input placeholder="eth0" v-model="selected_node.firewall.new_rule.input_device.value" :disabled="selected_node.firewall.new_rule.input_device.any"></el-input>
                 </el-col>
             </el-row>
         </el-form-item>
         <el-form-item>
             <el-row>
-                <el-col :span="2">
+                <el-col :span="6">
                 <span>Output Device</span>
                 </el-col>
-                <el-col :span="1">
+                <el-col :span="4">
                     <el-checkbox v-model="selected_node.firewall.new_rule.output_device.any">Any</el-checkbox>
                 </el-col>
-                <el-col :span="4">
+                <el-col :span="8">
                     <el-input placeholder="eth0" v-model="selected_node.firewall.new_rule.output_device.value" :disabled="selected_node.firewall.new_rule.output_device.any"></el-input>
                 </el-col>
             </el-row>
         </el-form-item>
         <el-form-item>
             <el-row>
-                <el-col :span="2">
+                <el-col :span="6">
                 <span>Protocol</span>
                 </el-col>
-                <el-col :span="1">
+                <el-col :span="4">
                     <el-checkbox v-model="selected_node.firewall.new_rule.protocol.any">Any</el-checkbox>
                 </el-col>
-                <el-col :span="4">
+                <el-col :span="8">
                     <el-select v-model="selected_node.firewall.new_rule.protocol.value" placeholder="Protocol" :disabled="selected_node.firewall.new_rule.protocol.any">
                         <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
                     </el-select>
@@ -166,44 +168,45 @@
         </el-form-item>
         <el-form-item>
             <el-row>
-                <el-col :span="2">
+                <el-col :span="6">
                 <span>Source</span>
                 </el-col>
-                <el-col :span="1">
+                <el-col :span="4">
                     <el-checkbox v-model="selected_node.firewall.new_rule.src.any">Any</el-checkbox>
                 </el-col>
-                <el-col :span="4">
+                <el-col :span="8">
                     <el-input placeholder="10.1.1.1" v-model="selected_node.firewall.new_rule.src.value" :disabled="selected_node.firewall.new_rule.src.any"></el-input>
                 </el-col>
             </el-row>
         </el-form-item>
         <el-form-item>
             <el-row>
-                <el-col :span="2">
+                <el-col :span="6">
                 <span>Destination</span>
                 </el-col>
-                <el-col :span="1">
+                <el-col :span="4">
                     <el-checkbox v-model="selected_node.firewall.new_rule.dst.any">Any</el-checkbox>
                 </el-col>
-                <el-col :span="4">
+                <el-col :span="8">
                     <el-input placeholder="10.1.1.2" v-model="selected_node.firewall.new_rule.dst.value" :disabled="selected_node.firewall.new_rule.dst.any"></el-input>
                 </el-col>
             </el-row>
         </el-form-item>
         <el-form-item>
             <el-row>
-                <el-col :span="2">
+                <el-col :span="6">
                     <span>Match Chain</span>
                 </el-col>
-                <el-col :span="4">
-                    <el-select allow-create v-model="selected_node.firewall.new_rule.chain" filterable placeholder="Current Chains">
-                        <el-option v-for="item in selected_node.firewall.current_rules" :key="item.id" :label="item.label" :value="item.label"></el-option>
+                <el-col :span="8">
+                    <el-select allow-create v-model="selected_node.firewall.new_rule.chain" filterable placeholder="Chain">
+                        <el-option v-for="item in selected_node.firewall.current_rules" :key="item.id" :label="item.label" :value="item.label" required></el-option>
                     </el-select>                
                 </el-col>
             </el-row>
         </el-form-item>
         <br/>
-        <el-button>Add Rule</el-button>
+        <el-button @click="add_firewall_rule">Add Rule</el-button>
+        &nbsp;<span>Tick a chain above to append the rule to</span>
     </el-form>
     <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="form_visible.firewall = false">Close</el-button>

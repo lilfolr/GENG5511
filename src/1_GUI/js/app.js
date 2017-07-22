@@ -344,6 +344,13 @@ app = new Vue({
                     if (checked_nodes.indexOf(chain.children[j].$treeNodeId) >= 0)
                         rules.push([chain.id, chain.children[j].id]);
             }
+            if (rules.length===0)
+                this.$notify({
+                      title: 'Warning',
+                      message: 'No rules checked to delete.',
+                      type: 'warning'
+                  });
+            else
             websocket_run("delete-rule",[node_id, rules], ()=>{
                app.load_firewall_dialog();
             })
@@ -359,9 +366,17 @@ app = new Vue({
                 output_device: !new_rule.output_device.any && new_rule.output_device.value,
                 protocol: !new_rule.protocol.any && new_rule.protocol.value,
             }
-            websocket_run("add-rule", [node_id, rule_data], ()=>{
-               app.load_firewall_dialog();
-            })
+            if (app.$refs.tree.getCheckedNodes().filter((e)=>{return typeof e.children !=="undefined"}).length !== 1)
+                this.$notify({
+                      title: 'Warning',
+                      message: 'Select 1 chain to append to',
+                      type: 'warning'
+                  });
+            else {
+                websocket_run("add-rule", [node_id, app.$refs.tree.getCheckedNodes().filter((e)=>{return typeof e.children !=="undefined"})[0].id, rule_data], ()=>{
+                app.load_firewall_dialog();
+                });
+            }
         }
     },
 });

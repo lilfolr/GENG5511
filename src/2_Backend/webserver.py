@@ -85,7 +85,7 @@ async def connect_nodes(sid, data):
     try:
         check_user(sid)
         active_users[sid].connect_nodes(data[0], data[1])
-    except expression as identifier:
+    except Exception as e:
         return ["E", "Error connecting nodes - "+str(e)]
     else:
         return ["S","Nodes connected "]
@@ -125,7 +125,7 @@ async def get_firewall(sid, node_id):
                 i += 1
             to_return.append(chain)
         return ["S", "", to_return]
-    except expression as identifier:
+    except Exception as e:
         return ["E", "Error getting firewall - "+str(e)]
 
 @sio.on('delete-rule')
@@ -139,7 +139,7 @@ def delete_rule(sid, data):
             logger.info("Deleting {} from {} - node {}".format(rule, chain, node_id))
             active_users[sid].get_node_firewall(node_id).remove_chain_rule(chain, rule)
         return ["S", "Rules deleted"]
-    except expression as identifier:
+    except Exception as e:
         return ["E", "Error deleting rules - "+str(e)]
 
 async def update_status_table(sid):
@@ -156,17 +156,36 @@ async def update_status_table(sid):
 
 @sio.on('add-rule')
 def add_rule(sid, data):
+    import iptables_sim_interface as ip 
     try:
+        msg = "Rule added"
         check_user(sid)
-        node = data[0]
-        rule = data[1]  # False = Any
-        chain = "a"
-        raise
-        logger.debug("Adding rule to {0} - {1}".format(node, rule))
-        #TODO: add firewall = active_users[sid].get_node_firewall(node_id)
-        return ["S", "Rule added"]
-    except expression as identifier:
+        node_id = data[0]
+        chain = data[1]
+        rule = data[2]  # False = Any
+        logger.info("Adding {} from {} - node {}".format(rule, chain, node_id))
+        firewall = active_users[sid].get_node_firewall(node_id)
+        ip_rule = ip.Rule()
+        ip_rule.input_device = rule["input_device"] if rule["input_device"] else None
+        ip_rule.output_device = rule["output_device"] if rule["output_device"] else None
+        ip_rule.protocol = rule["protocol"] if rule["protocol"] else None
+        ip_rule.src = rule["src"] if rule["src"] else None
+        ip_rule.dst = rule["dst"] if rule["dst"] else None
+        logger.info("1")
+        if not rule["chain"]:
+            raise ValueError("Match chain must have a value")
+        logger.info("2")        
+        if rule["chain"] not in firewall.chains.keys():
+            firewall.create_chain(rule["chain"])
+            logger.info("3")
+            msg += ". New chain {} created".format(rule["chain"])
+        logger.info("4")
+        ip_rule.match_chain = rule["chain"]
+        firewall.add_chain_rule(chain, ip_rule, 0)  #TODO: allow custom index location
+        return ["S", msg]
+    except Exception as e:
         return ["E", "Error adding rule - "+str(e)]
+
 
 def check_user(sid):
     if sid not in active_users:
