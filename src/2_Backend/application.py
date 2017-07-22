@@ -8,7 +8,7 @@ if os.name == 'nt':
 else:
     base_index = '../1_GUI/'
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], "../iptables/")))
-#import iptables_sim_interface as ip 
+import iptables_sim_interface as ip 
 logger = logging.getLogger(__name__)
 
 class Application(object):
@@ -29,7 +29,7 @@ class Application(object):
             "mac": mac_ad,
             "ip": ip_ad,
             "firewall_type": firewall_type,
-            #"firewall": ip.IPTables()
+            "firewall": ip.IPTables()
         }
 
     def destroy_node(self, node_id):
@@ -45,54 +45,7 @@ class Application(object):
             self.node_connections.append((node_1, node_2))
 
     def get_node_firewall(self, node_id):
-        example_return = {
-            "INPUT":[
-                {
-                    "id": 0,
-                    "input_device" : "ANY",
-                    "output_device": "ANY",
-                    "protocol": "ANY",
-                    "src": "ANY",
-                    "dst": "ANY",
-                    "match_chain": "DROP",
-                }
-            ],
-            "OUTPUT":[
-                {
-                    "id": 1,
-                    "input_device": "eth0",
-                    "output_device": "ANY",
-                    "protocol": "ANY",
-                    "src": "ANY",
-                    "dst": "ANY",
-                    "match_chain": "DROP",
-                }
-            ],
-            "FORWARD":[
-                {
-                    "id": 2,
-                    "input_device": "eth0",
-                    "output_device": "eth0",
-                    "protocol": "TCP",
-                    "src": "ANY",
-                    "dst": "ANY",
-                    "match_chain": "DROP",
-                },
-                {
-                    "id": 3,
-                    "input_device": "eth0",
-                    "output_device": "ANY",
-                    "protocol": "UDP",
-                    "src": "ANY",
-                    "dst": "ANY",
-                    "match_chain": "REJECT",
-                },
-            ],
-        }
-
-        return example_return
-    
-        #self.current_nodes[node_id]["firewall"]
+        return self.current_nodes[node_id]["firewall"]
 
         
     def cleanup(self):

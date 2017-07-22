@@ -336,12 +336,30 @@ app = new Vue({
         },
         delete_firewall_rule: function(rule_id){
             node_id = app.$data.selected_node.id;
-            checked_nodes = app.$refs.tree.getCheckedKeys(); // Array of ids [could inc chain]
+            checked_nodes = app.$refs.tree.getCheckedNodes().map((a)=>{return a.$treeNodeId}) // Array of ids [could inc chain]
             rules = [];
-            for (i=0;i<checked_nodes.length;i++)
-                if (!String(checked_nodes[i]).startsWith("C"))
-                    rules.push(checked_nodes[i]);
+            for (i=0;i<app.$refs.tree.data.length;i++){
+                chain = app.$refs.tree.data[i];
+                for(j=0;j<chain.children.length; j++)
+                    if (checked_nodes.indexOf(chain.children[j].$treeNodeId) >= 0)
+                        rules.push([chain.id, chain.children[j].id]);
+            }
             websocket_run("delete-rule",[node_id, rules], ()=>{
+               app.load_firewall_dialog();
+            })
+        },
+        add_firewall_rule: function(){
+            node_id = app.$data.selected_node.id;
+            new_rule = app.$data.selected_node.firewall.new_rule;
+            rule_data = {
+                chain: new_rule.chain,
+                dst: !new_rule.dst.any && new_rule.dst.value,
+                src: !new_rule.src.any && new_rule.src.value,
+                input_device: !new_rule.input_device.any && new_rule.input_device.value,
+                output_device: !new_rule.output_device.any && new_rule.output_device.value,
+                protocol: !new_rule.protocol.any && new_rule.protocol.value,
+            }
+            websocket_run("add-rule", [node_id, rule_data], ()=>{
                app.load_firewall_dialog();
             })
         }

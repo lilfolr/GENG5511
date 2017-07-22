@@ -27,7 +27,7 @@ import socketio
 from aiohttp import web
 from application import *
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 
@@ -107,19 +107,22 @@ async def get_firewall(sid, node_id):
         check_user(sid)
         to_return = []
         firewall = active_users[sid].get_node_firewall(node_id)
-        for chain, rules in firewall.items():
+        for chain, rules in firewall.chains.items():
+            chain = str(chain)
             chain = {
                 "id" : chain,
                 "label": chain,
                 "children": []
             }
+            i = 0
             for rule in rules:
                 child = {
-                    "id": rule['id'],
-                    "label": "-i {} -o {} -p {} -s {} -d {} -j {}".format(rule["input_device"], rule["output_device"], 
-                                                                           rule["protocol"], rule["src"], rule["dst"], rule["match_chain"])
+                    "id": i,
+                    "label": "-i {} -o {} -p {} -s {} -d {} -j {}".format(rule.input_device, rule.output_device, 
+                                                                          rule.protocol, rule.src, rule.dst, rule.match_chain).replace("None", "Any")
                 }
                 chain["children"].append(child)
+                i += 1
             to_return.append(chain)
         return ["S", "", to_return]
     except expression as identifier:
@@ -129,9 +132,12 @@ async def get_firewall(sid, node_id):
 def delete_rule(sid, data):
     try:
         check_user(sid)
-        node = data[0]
-        rules = data[1]
-        #TODO: Delete firewall = active_users[sid].get_node_firewall(node_id)
+        node_id = data[0]
+        rules = data[1]  
+        for r in rules:
+            chain, rule = r
+            logger.info("Deleting {} from {} - node {}".format(rule, chain, node_id))
+            active_users[sid].get_node_firewall(node_id).remove_chain_rule(chain, rule)
         return ["S", "Rules deleted"]
     except expression as identifier:
         return ["E", "Error deleting rules - "+str(e)]
@@ -147,6 +153,20 @@ async def update_status_table(sid):
             "Packets_Out_Block": '0',
         })
     await sio.emit('update-table', data=toreturn, room=sid)
+
+@sio.on('add-rule')
+def add_rule(sid, data):
+    try:
+        check_user(sid)
+        node = data[0]
+        rule = data[1]  # False = Any
+        chain = "a"
+        raise
+        logger.debug("Adding rule to {0} - {1}".format(node, rule))
+        #TODO: add firewall = active_users[sid].get_node_firewall(node_id)
+        return ["S", "Rule added"]
+    except expression as identifier:
+        return ["E", "Error adding rule - "+str(e)]
 
 def check_user(sid):
     if sid not in active_users:
