@@ -1,4 +1,3 @@
-
 function node_color(is_server, is_client) {
     if (is_server) {
         if (is_client) {
@@ -14,11 +13,23 @@ function node_color(is_server, is_client) {
 
 function alert_msg(msg, level, timeout) {
     if (level == "error") {
-        Materialize.toast(msg, timeout || 200000, "red");
+        app.$notify({
+          title: 'Error',
+          message: msg,
+          type: 'error'
+        });
     } else if (level == "warning") {
-        Materialize.toast(msg, timeout || 8000, "orange");
+        app.$notify({
+          title: 'Warning',
+          message: msg,
+          type: 'warning'
+        });
     } else if (level == "info") {
-        Materialize.toast(msg, timeout || 5000, "blue");
+        app.$notify({
+          title: 'Info',
+          message: msg,
+          type: 'info'
+        });
     }
 }
 var current_node_id = -1;
