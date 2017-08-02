@@ -312,6 +312,7 @@ app = new Vue({
             var id = selectedNode.id;        // Needs to be manually set to avoid race
             var type = selectedNode.type;
             var color = type=="S"?"#ff7b7b":"#7dff7b";
+            var nodeDetails = this.nodes;
             websocket_run('update-node', id, function() {
                 nodes.update({
                     id: id,

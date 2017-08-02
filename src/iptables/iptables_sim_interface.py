@@ -76,6 +76,8 @@ class IPTables(object):
             raise ValueError("Can not remove rules from a base rule")
         chain = self.chains.get(chain_name, None)
         if chain:
+            if index_location==len(chain)-1:
+                raise ValueError("Can not remove the default rule")
             del chain[index_location]
         else:
             raise ValueError("Chain {} does not exist".format(chain_name))
