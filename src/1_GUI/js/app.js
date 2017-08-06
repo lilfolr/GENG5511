@@ -209,10 +209,13 @@ app = new Vue({
             }
         },
         handleSelect: function(key, keyPath) {
-            if (key=="3"){
+            if (key=="4"){
+                websocket_run('run-simulation', "", ()=>{});
+            }
+            else if (key=="3"){
                 websocket_run('update-status-table', "loud", ()=>{});
             }
-            if (key=="2-1"){
+            else if (key=="2-1"){
                 this.clear_selected_node();
                 this.open_side_bar();
             }

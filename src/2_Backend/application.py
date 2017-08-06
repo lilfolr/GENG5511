@@ -47,6 +47,21 @@ class Application(object):
     def get_node_firewall(self, node_id):
         return self.current_nodes[node_id]["firewall"]
 
+    def simulate(self, packets):
+        """
+            returns 
+            ( 
+                (src: blocked_out?), //add forward at some stage
+                (dst: blocked_in?)
+            )
+        """
+        import random
+        for k,v in packets.items():
+            yield (
+                    (v['DN'], bool(random.getrandbits(1))),
+                    (v['SN'], bool(random.getrandbits(1)))
+                  )
+
         
     def cleanup(self):
         """

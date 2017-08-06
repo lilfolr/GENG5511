@@ -188,11 +188,41 @@ def add_rule(sid, data):
 
 # ======================== SIMULATION ========================
 
-def run_simulation(sid):
+@sio.on('run-simulation', namespace='')
+async def run_simulation(sid, data):
     try:
         check_user(sid)
         sim_file = "/home/leighton/Documents/GENG5511/src/2_Backend/example.csv"
-
+        sim_data={}
+        for x in range(20):
+            sim_data[x]={
+                    "NL": "TCP",
+                    "AL": "",
+                    "SP": 22,
+                    "DP": 22, 
+                    "SN": 0,
+                    "DN": 1,
+                    "TTL": 33,
+                }
+        results_out = {q:[0,0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
+        results_in = {q:[0,0] for q in active_users[sid].current_nodes.keys()}    # node: (total, blocked)
+        for packet_result in active_users[sid].simulate(sim_data):                # returns {packet_id: blocked?}
+            results_out[sim_data[packet_result[0][0]]['SN']][0] += 1
+            results_out[sim_data[packet_result[0][0]]['SN']][1] += 1 if packet_result[0][1] else 0
+            results_in[sim_data[packet_result[1][0]]['DN']][0] += 1
+            results_in[sim_data[packet_result[1][0]]['DN']][1] += 1 if packet_result[1][1] else 0
+        update_table=[]
+        for node_id, node_data in active_users[sid].current_nodes.items():
+            update_table.append({
+                "Node_ID": node_id,
+                "Node_Addr": node_data['ip'],
+                "Node_Mac": node_data['mac'],
+                "Packets_In": "{} | {}".format(*results_in[node_id]),
+                "Packets_Out": "{} | {}".format(*results_out[node_id])
+            })
+        await sio.emit('update-table', data=update_table, room=sid)
+            
+        return ["S","Simulation Complete"]
     except Exception as e:
         return ["E", "Error running simulation - "+str(e)]
 
