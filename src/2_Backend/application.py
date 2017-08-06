@@ -56,18 +56,19 @@ class Application(object):
 
 
 def _generate_mac_ip(node_id):
-    mod = node_id % 255
-    node_id -= mod * 255
+    mod = node_id % 256
+    node_id = int((node_id-mod) / 256)
+
     return ("%02x:%02x:%02x:%02x:%02x:%02x" % (
-        random.randint(0, 255),
-        random.randint(0, 255),
-        random.randint(0, 255),
-        random.randint(0, 255),
-        mod,
-        node_id
-    ),
-            "10.%02x.%02x.%02x" % (
-                random.randint(0, 255),
-                mod,
-                node_id
-            ))
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255),
+            node_id,
+            mod,
+        ),
+        "10.{}.{}.{}".format(
+            random.randint(0, 255),
+            node_id,
+            mod
+        ))
