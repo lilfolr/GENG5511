@@ -70,10 +70,10 @@
                 <el-table :data="tableData" empty-text="No nodes" height="100%" style="width: 100%">
                     <el-table-column prop="Node_ID" label="ID"></el-table-column>
                     <el-table-column prop="Node_Name" label="Name"></el-table-column>
-                    <el-table-column prop="Packets_In" label="In"></el-table-column>
-                    <el-table-column prop="Packets_In_Block" label="In [Block]"></el-table-column>
-                    <el-table-column prop="Packets_Out" label="Out"></el-table-column>
-                    <el-table-column prop="Packets_Out_Block" label="Out [Block]"></el-table-column>
+                    <el-table-column prop="Node_Addr" label="IP"></el-table-column>
+                    <el-table-column prop="Node_Mac" width="160" label="MAC"></el-table-column>
+                    <el-table-column prop="Packets_In" label="In | Blocked"></el-table-column>
+                    <el-table-column prop="Packets_Out" label="Out | Blocked"></el-table-column>
                 </el-table>
             </el-col>
             <el-col :span="12">

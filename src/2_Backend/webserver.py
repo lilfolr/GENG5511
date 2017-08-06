@@ -147,10 +147,10 @@ async def update_status_table(sid):
     for node_id, node_data in active_users[sid].current_nodes.items():
         toreturn.append({
             "Node_ID": node_id,
-            "Packets_In": '0',
-            "Packets_In_Block": '0',
-            "Packets_Out": '0',
-            "Packets_Out_Block": '0',
+            "Node_Addr": node_data['ip'],
+            "Node_Mac": node_data['mac'],
+            "Packets_In": '0 | 0',
+            "Packets_Out": '0 | 0',
         })
     await sio.emit('update-table', data=toreturn, room=sid)
 
@@ -186,6 +186,15 @@ def add_rule(sid, data):
     except Exception as e:
         return ["E", "Error adding rule - "+str(e)]
 
+# ======================== SIMULATION ========================
+
+def run_simulation(sid):
+    try:
+        check_user(sid)
+        sim_file = "/home/leighton/Documents/GENG5511/src/2_Backend/example.csv"
+
+    except Exception as e:
+        return ["E", "Error running simulation - "+str(e)]
 
 def check_user(sid):
     if sid not in active_users:
