@@ -68,12 +68,12 @@
         <el-row v-loading='loading' element-loading-text="Loading...">
             <el-col :span="12">
                 <el-table :data="tableData" empty-text="No nodes" height="100%" style="width: 100%">
-                    <el-table-column prop="Node_ID" label="ID"></el-table-column>
-                    <el-table-column prop="Node_Name" label="Name"></el-table-column>
-                    <el-table-column prop="Node_Addr" label="IP"></el-table-column>
-                    <el-table-column prop="Node_Mac" width="160" label="MAC"></el-table-column>
-                    <el-table-column prop="Packets_In" label="In | Blocked"></el-table-column>
-                    <el-table-column prop="Packets_Out" label="Out | Blocked"></el-table-column>
+                    <el-table-column prop="Node_ID" min-width="70" label="ID"></el-table-column>
+                    <el-table-column prop="Node_Name" min-width="100" label="Name"></el-table-column>
+                    <el-table-column prop="Node_Addr" min-width="100" label="IP"></el-table-column>
+                    <el-table-column prop="Node_Mac" min-width="160" label="MAC"></el-table-column>
+                    <el-table-column prop="Packets_In" min-width="130" label="In | Blocked"></el-table-column>
+                    <el-table-column prop="Packets_Out" min-width="130" label="Out | Blocked"></el-table-column>
                 </el-table>
             </el-col>
             <el-col :span="12">
