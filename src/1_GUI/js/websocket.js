@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost:8080');
+var socket = io.connect('http://ip_vm:8080/');
 app.$message({
   message: 'Connecting to socket...',
   type: 'info'
