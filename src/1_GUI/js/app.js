@@ -213,14 +213,13 @@ app = new Vue({
             }
         },
         handleSelect: function(key, keyPath) {
-            if (key=="4"){
-                websocket_run('run-simulation', "", ()=>{});
-            }
-            else if (key=="2-1"){
+            if (key=="2-1"){
+                // New Node
                 this.clear_selected_node();
                 this.open_side_bar();
             }
             else if (key=="2-2"){
+                // Delete node
                 var selectedNode = this.selected_node;
                 var id = selectedNode['id'];
                 if (id==-1){
@@ -238,7 +237,8 @@ app = new Vue({
                 }
                 this.clear_selected_node();
             }
-            else if (key=="2-3")
+            else if (key=="2-3"){
+                // Connect node - deprecated
                 if (network.getSelectedNodes().length == 1) {
                     this.connect_node_start = network.getSelectedNodes()[0];
                     this.$notify({
@@ -253,21 +253,41 @@ app = new Vue({
                       type: 'warning'
                   });
                 }
+            }
             else if (key=="3-1"){
                 //Download template
-                app.$data['simulation']["packets_loaded"] = false;
-                app.$data['simulation']["simulation_run"] = false;
-                
-                }
+
+            }
             else if (key=="3-2"){
-                // upload sim file
-                }
+                // Upload sim file
+                app.$data['simulation']["packets_loaded"] = true;
+                app.$data['simulation']["simulation_run"] = false;
+            }
             else if (key=="3-3"){
-                // run simulation
+                // Run simulation
+                if (!app.$data['simulation']["packets_loaded"]){
+                    app.$message({
+                        message: 'Upload simulation file before attempting to run simulation',
+                        type: 'error'
+                      });
+                }else{
+                    websocket_run('run-simulation', "", ()=>{
+                        app.$data['simulation']["packets_loaded"] = true;
+                        app.$data['simulation']["simulation_run"] = true;
+                    });
                 }
+            }
             else if (key=="3-4"){
-                // download results
+                // Download results
+                if (!app.$data['simulation']["simulation_run"]){
+                    app.$message({
+                        message: 'Run simulation before attempting to download results',
+                        type: 'error'
+                      });
+                }else{
+
                 }
+            }
             },
             load_packet_dialog: function(){
                 var node_id = this.selected_node.id;
