@@ -15,6 +15,10 @@ app = new Vue({
     el: '#app',
     data: {
         connect_node_start: null,
+        simulation:{
+            packets_loaded: false,
+            simulation_run: false,
+        },
         selected_node: {
             color:"",
             id:-1,
@@ -212,9 +216,6 @@ app = new Vue({
             if (key=="4"){
                 websocket_run('run-simulation', "", ()=>{});
             }
-            else if (key=="3"){
-                websocket_run('update-status-table', "loud", ()=>{});
-            }
             else if (key=="2-1"){
                 this.clear_selected_node();
                 this.open_side_bar();
@@ -251,6 +252,21 @@ app = new Vue({
                       message: 'Select a node first',
                       type: 'warning'
                   });
+                }
+            else if (key=="3-1"){
+                //Download template
+                app.$data['simulation']["packets_loaded"] = false;
+                app.$data['simulation']["simulation_run"] = false;
+                
+                }
+            else if (key=="3-2"){
+                // upload sim file
+                }
+            else if (key=="3-3"){
+                // run simulation
+                }
+            else if (key=="3-4"){
+                // download results
                 }
             },
             load_packet_dialog: function(){

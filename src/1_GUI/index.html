@@ -4,6 +4,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IPTables Simulator</title>
     <style>
+        .is-disabled {
+            cursor: not-allowed !important;
+            background-color: #48576a !important;
+            color: #FFFFFF !important;
+        }
+
         .dropdown-content li>a {
             color: #000000 !important;
         }
@@ -57,10 +63,16 @@
                 <el-submenu index="2">
                     <template slot="title">Manage Nodes</template>
                     <el-menu-item index="2-1">Create New</el-menu-item>
-                    <el-menu-item index="2-2">Delete Selected</el-menu-item>
+                    <el-menu-item index="2-2" >Delete Selected</el-menu-item>
                     <!-- <el-menu-item index="2-3">Connect Nodes</el-menu-item> -->
                 </el-submenu>
-                <el-menu-item index="3">Refresh data table</el-menu-item>
+                <el-submenu index="3">
+                    <template slot="title">Manage Simulation</template>
+                    <el-menu-item index="3-1">Download simulation template</el-menu-item>
+                    <el-menu-item index="3-2" disabled>Upload simulation file</el-menu-item>
+                    <el-menu-item index="3-3">Run Simulation</el-menu-item>
+                    <el-menu-item index="3-4">Download simulation results</el-menu-item>       
+                </el-submenu>                
                 <el-menu-item index="4"><i class="el-icon-caret-right"></i>Run Simulation</el-menu-item>
             </el-menu>
         </div>
