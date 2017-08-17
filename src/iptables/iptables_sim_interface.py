@@ -6,7 +6,7 @@ from collections import OrderedDict
 # p.ttl = 10
 # p.src_addr = "192.168.1.3"
 # p.dst_addr = "192.168.1.2"
-# debug = 1
+debug = 1
 
 # packet_match = iptables_sim.run_sim(p,r, debug)
 
@@ -31,7 +31,8 @@ class Rule(object):
                                           self.dst,
                                           str(self.match_chain))
 
-
+BASE_RULES = ["ACCEPT", "REJECT", "DROP"]
+BASE_CHAINS = ["INPUT", "FORWARD", "OUTPUT"]
 class IPTables(object):
     """
     iptables instance. 
@@ -42,8 +43,8 @@ class IPTables(object):
     def __init__(self):
         # Start with 3 chains; INPUT FORWARD OUTPUT
         self.chains = OrderedDict()
-        self.base_chains = ["INPUT", "FORWARD", "OUTPUT"]
-        self.base_rules  = ["ACCEPT", "REJECT", "DROP"]
+        self.base_chains = BASE_CHAINS
+        self.base_rules  = BASE_RULES
         for chain in self.base_chains:
             self.create_chain(chain)
         for chain in self.base_rules:
@@ -94,3 +95,6 @@ class IPTables(object):
                 to_return += " >Rule {} {}\n".format(str(i), str(rule))
                 i += 1
         return to_return
+
+def check_rule_packet(rule, packet):
+    return iptables_sim.run_sim(packet, rule, debug)

@@ -58,6 +58,7 @@ function websocket_run(func, data, succ_func){
           succ_func();
         if (msg!=="")
         app.$message({
+          showClose: true,
           message: msg,
           type: 'info'
         });
