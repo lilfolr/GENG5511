@@ -65,8 +65,9 @@ typedef struct in_rules{
 } in_rule;
 
 // Takes a packet and a rule, and returns True if they match, and False if not
-int run_sim(in_packet *packet, in_rule *rule){
-    //printf("Starting\n");
+int run_sim(in_packet *packet, in_rule *rule, int debug){
+    if (debug)
+        printf("Starting\n");
     bool packet_pass;
 
     //The Packet
@@ -97,8 +98,8 @@ int run_sim(in_packet *packet, in_rule *rule){
     ipinfo->src     = get_in_addr(inet_addr(src_addr));
     ipinfo->dst     = get_in_addr(inet_addr(dst_addr));
     //SEE REF_FLAGS Below
-    //ipinfo->flags
-    ipinfo->invflags = IPT_INV_VIA_IN | IPT_INV_VIA_OUT; //Don't care about interface matching
+    ipinfo->flags   = 0x00; //Not frag
+    ipinfo->invflags = IPT_INV_VIA_IN | IPT_INV_VIA_OUT; //Don't care about interface matching or fragments for now
     ipinfo->smsk    = get_in_addr(inet_addr("255.255.255.255"));
     ipinfo->dmsk    = get_in_addr(inet_addr("255.255.255.255"));
     // strcpy(ipinfo->iniface, "eth2");
@@ -107,11 +108,14 @@ int run_sim(in_packet *packet, in_rule *rule){
     // strcpy(ipinfo->outiface_mask,_mask);
 
 
-    packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, false);
+    packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, 0, debug);
     //printf("Result: ");
-    printf(packet_pass ? "True\n" : "False\n");
+    if (debug){
+        printf(packet_pass ? "True\n" : "False\n");
+        printf("End\n");
+    }
     return (int) packet_pass;
-    //printf("End");
+    
 }
 
 

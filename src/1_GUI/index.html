@@ -2,20 +2,25 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IPTables Simulator</title>
     <style>
         .dropdown-content li>a {
             color: #000000 !important;
         }
+
         .el-menu--dark {
             background-color: #000 !important;
         }
+
         .el-menu--horizontal.el-menu--dark .el-submenu__title:hover {
             background-color: #000 !important;
         }
+
         .el-dialog--small {
             width: 30% !important;
             min-width: 450px;
         }
+
         .code {
             background-color: #f5f5f5 !important;
             border: 1px solid #ccc !important;
@@ -23,51 +28,54 @@
             font-family: monospace, monospace;
             line-height: initial !important;
         }
-        #side_nav{ 
-            position: absolute; 
-            right: 0; 
-            float: right; 
-            top: 58px; 
-            min-width:165px; 
+
+        #side_nav {
+            position: absolute;
+            right: 0;
+            float: right;
+            top: 58px;
+            min-width: 165px;
         }
     </style>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="css/vis.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/element-ui/1.4.1/theme-default/index.css">
     <script type="text/javascript" src="js/vis.min.js"></script>
     <script>
-        var app;        // vuejs app
-        var network     // visjs network
+        var app; // vuejs app
+        var network // visjs network
     </script>
 </head>
 
 <body style="margin: 0;">
     <div id='app'>
-        
+
         <!-- Nav bar -->
         <div id="navbar">
             <el-menu mode="horizontal" theme="dark" @select="handleSelect">
-              <el-menu-item index="1">GENG5511 - Firewall Visualisation</el-menu-item>
-              <el-submenu index="2">
-                <template slot="title">Manage Nodes</template>
-                <el-menu-item index="2-1">Create New</el-menu-item>
-                <el-menu-item index="2-2">Delete Selected</el-menu-item>
-                <el-menu-item index="2-3">Connect Nodes</el-menu-item>
-            </el-submenu>
+                <el-menu-item index="1">GENG5511 - Firewall Visualisation</el-menu-item>
+                <el-submenu index="2">
+                    <template slot="title">Manage Nodes</template>
+                    <el-menu-item index="2-1">Create New</el-menu-item>
+                    <el-menu-item index="2-2">Delete Selected</el-menu-item>
+                    <!-- <el-menu-item index="2-3">Connect Nodes</el-menu-item> -->
+                </el-submenu>
+                <el-menu-item index="3">Refresh data table</el-menu-item>
+                <el-menu-item index="4"><i class="el-icon-caret-right"></i>Run Simulation</el-menu-item>
             </el-menu>
         </div>
 
         <!-- Data table-->
-        <el-row v-loading='loading' element-loading-text="Loading..." >
-        <el-col :span="12">
-        <el-table :data="tableData" height="100%" style="width: 100%">
-          <el-table-column prop="Node_ID" label="ID"></el-table-column>
-          <el-table-column prop="Node_Name" label="Name"></el-table-column>
-          <el-table-column prop="Packets_In" label="In"></el-table-column>
-          <el-table-column prop="Packets_In_Block" label="In [Block]"></el-table-column>
-          <el-table-column prop="Packets_Out" label="Out"></el-table-column>
-          <el-table-column prop="Packets_Out_Block" label="Out [Block]"></el-table-column>
-        </el-table>
+        <el-row v-loading='loading' element-loading-text="Loading...">
+            <el-col :span="12">
+                <el-table :data="tableData" empty-text="No nodes" height="100%" style="width: 100%">
+                    <el-table-column prop="Node_ID" min-width="70" label="ID"></el-table-column>
+                    <el-table-column prop="Node_Name" min-width="100" label="Name"></el-table-column>
+                    <el-table-column prop="Node_Addr" min-width="100" label="IP"></el-table-column>
+                    <el-table-column prop="Node_Mac" min-width="160" label="MAC"></el-table-column>
+                    <el-table-column prop="Packets_In" min-width="130" label="In A | D | R"></el-table-column>
+                    <el-table-column prop="Packets_Out" min-width="130" label="Out A | D | R"></el-table-column>
+                </el-table>
             </el-col>
             <el-col :span="12">
                 <div style="border-left: solid black;" id="firewall_network"></div>
@@ -76,115 +84,195 @@
 
         <!-- SIDE_NAV -->
         <div id="side_nav">
-        <el-menu mode="vertical" id="side_nav_el" default-active="2" class="el-menu-vertical-demo" theme="dark">
-          <el-submenu index="1">
-          <template slot="title"><i class="el-icon-share"></i>Node Details</template>
-            <el-menu-item-group title="Node Name">
-              <el-menu-item index="1-1"><el-input placeholder="Node Name" v-model="selected_node.label"></el-input></el-menu-item>
-          </el-menu-item-group>
-          <el-menu-item-group title="Node Type">
-              <el-menu-item index="1-3">
-                  <el-select v-model="selected_node.type" placeholder="Node Type">
-                    <el-option v-for="item in node_type_options" :key="item.value" :label="item.label" :value="item.value"></el-option>
-                  </el-select>
-              </el-menu-item>
-          </el-menu-item-group>
-          <el-menu-item-group title="Firewall" v-if="selected_node.committed">
-          <el-menu-item index="1-4">
-            <el-button type="default" :disabled="!selected_node.committed" @click="load_firewall_dialog">Edit Node Firewall</el-button>
-          </el-menu-item>
-          </el-menu-item-group>
-          <el-menu-item-group title="Packets" v-if="selected_node.committed">
-          <el-menu-item index="1-5">
-            <el-button type="default" :disabled="!selected_node.committed" @click="load_packet_dialog">Edit Packet Simulation</el-button>
-          </el-menu-item>
-          </el-menu-item-group>
-          <el-menu-item-group title="Save">
-          <el-menu-item index="1-5">
-            <el-button type="primary" @click="update_node" v-if="selected_node.committed">Update</el-button>
-            <el-button type="primary" @click="create_node" v-else >Create</el-button>
-          </el-menu-item>
-      </el-submenu>
-    </el-menu>
+            <el-menu mode="vertical" id="side_nav_el" default-active="2" class="el-menu-vertical-demo" theme="dark">
+                <el-submenu index="1">
+                    <template slot="title"><i class="el-icon-share"></i>Node Details</template>
+                    <el-menu-item-group title="Node Name">
+                        <el-menu-item index="1-1">
+                            <el-input placeholder="Node Name" v-model="selected_node.label"></el-input>
+                        </el-menu-item>
+                    </el-menu-item-group>
+                    <el-menu-item-group title="Node Type">
+                        <el-menu-item index="1-3">
+                            <el-select v-model="selected_node.type" placeholder="Node Type">
+                                <el-option v-for="item in node_type_options" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                            </el-select>
+                        </el-menu-item>
+                    </el-menu-item-group>
+                    <el-menu-item-group title="Firewall" v-if="selected_node.committed">
+                        <el-menu-item index="1-4">
+                            <el-button type="default" :disabled="!selected_node.committed" @click="load_firewall_dialog">Edit Node Firewall</el-button>
+                        </el-menu-item>
+                    </el-menu-item-group>
+                    <el-menu-item-group title="Packets" v-if="selected_node.committed">
+                        <el-menu-item index="1-5">
+                            <el-button type="default" :disabled="!selected_node.committed" @click="load_packet_dialog">Edit Packet Simulation</el-button>
+                        </el-menu-item>
+                    </el-menu-item-group>
+                    <el-menu-item-group title="Save">
+                        <el-menu-item index="1-5">
+                            <el-button type="primary" @click="update_node" v-if="selected_node.committed">Update</el-button>
+                            <el-button type="primary" @click="create_node" v-else>Create</el-button>
+                        </el-menu-item>
+                </el-submenu>
+            </el-menu>
 
-<!-- Firewall Modal -->
-        <el-dialog :title="'Firewall - '+selected_node.label" v-model="form_visible.firewall" size="large">
-          <el-form>
-            <el-form-item label="Firewall Type">
-                <el-select v-model="selected_node.firewall.type" placeholder="Firewall Type">
-                    <el-option v-for="item in firewall_options.type" :key="item" :label="item" :value="item"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="Current Rules:">
-            <el-input class="code" readonly type="textarea" autosize placeholder="Please input" v-html="selected_node.firewall.current_rules">
-            </el-input>
-            </el-form-item>
-            <el-radio-group v-model="selected_node.firewall.clear_current">
-              <el-radio-button label="Clear"></el-radio-button>
-              <el-radio-button label="Append"></el-radio-button>
-            </el-radio-group>
-            <el-form-item label="Add rules:">
-              <el-input class="code" type="textarea" autosize placeholder="Rules here" v-model="selected_node.firewall.new_rules">
-              </el-input>
-            </el-form-item>
-          </el-form>  
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="form_visible.firewall = false">Cancel</el-button>
-            <el-button type="primary" @click="form_visible.firewall = false">Confirm</el-button>
-          </span>
-        </el-dialog>
+            <!-- Firewall Modal -->
+            <el-dialog :title="'Firewall - '+selected_node.label" top="5%" v-model="form_visible.firewall" size="large">
+                <el-form>
+                    <el-row :gutter="20">
+                        <el-col :span="12">
+                            <h3>Current Rules</h3>
+                            <el-tree :data="selected_node.firewall.current_rules" v-model="selected_node.firewall.current_rules_tree" ref="tree" :expand-on-click-node="false"
+                                show-checkbox="" node-key="id" children='children' label='label'>
+                            </el-tree>
+                            <h3>Delete Rules</h3>
+                            <el-button @click="delete_firewall_rule">Delete Selected Rules</el-button>
+                            &nbsp;<span>Tick rule(s) above to select them for removal</span>
+                        </el-col>
+                        <el-col :span="12">
+                            <h3>Add Rule</h3>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
+                                        <span>Input Device</span>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-checkbox v-model="selected_node.firewall.new_rule.input_device.any">Any</el-checkbox>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-input placeholder="eth0" v-model="selected_node.firewall.new_rule.input_device.value" :disabled="selected_node.firewall.new_rule.input_device.any"></el-input>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
+                                        <span>Output Device</span>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-checkbox v-model="selected_node.firewall.new_rule.output_device.any">Any</el-checkbox>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-input placeholder="eth0" v-model="selected_node.firewall.new_rule.output_device.value" :disabled="selected_node.firewall.new_rule.output_device.any"></el-input>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
+                                        <span>Protocol</span>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-checkbox v-model="selected_node.firewall.new_rule.protocol.any">Any</el-checkbox>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-select v-model="selected_node.firewall.new_rule.protocol.value" placeholder="Protocol" :disabled="selected_node.firewall.new_rule.protocol.any">
+                                            <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                                        </el-select>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
+                                        <span>Source</span>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-checkbox v-model="selected_node.firewall.new_rule.src.any">Any</el-checkbox>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-input placeholder="10.1.1.1" v-model="selected_node.firewall.new_rule.src.value" :disabled="selected_node.firewall.new_rule.src.any"></el-input>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
+                                        <span>Destination</span>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-checkbox v-model="selected_node.firewall.new_rule.dst.any">Any</el-checkbox>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-input placeholder="10.1.1.2" v-model="selected_node.firewall.new_rule.dst.value" :disabled="selected_node.firewall.new_rule.dst.any"></el-input>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
+                                        <span>Match Chain</span>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-select allow-create v-model="selected_node.firewall.new_rule.chain" filterable placeholder="Chain">
+                                            <el-option v-for="item in selected_node.firewall.current_rules" :key="item.id" :label="item.label" :value="item.label" required></el-option>
+                                        </el-select>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <br/>
+                            <el-button @click="add_firewall_rule">Add Rule</el-button>
+                            &nbsp;<span>Tick a chain (left) to append the rule to</span>
+                        </el-col>
+                    </el-row>
+                </el-form>
+                <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="form_visible.firewall = false">Close</el-button>
+    </span>
+            </el-dialog>
 
-        <!-- Packet Modal -->
-        <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="large">
-          <el-form>
-            <el-form-item label="Network Layer">
-                <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
-                    <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="Application Layer">
-                <el-select v-model="selected_node.packet_simulation.application_protocol" placeholder="Application Protocol">
-                    <el-option v-for="item in packet_options.Application_Layer" :key="item" :label="item" :value="item"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="Source Port">
-              <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.source_port">
-                <template slot="prepend">#</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="Destination Port">
-              <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.dest_port">
-                <template slot="prepend">#</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="">
-            <div class="block">
-                <span class="demonstration">Time to live </span>
-                <el-input placeholder="Hops" v-model="selected_node.packet_simulation.ttl">
-                <template slot="prepend">#</template>
-              </el-input>
-            </div>
-            <div class="block">
-                <span class="demonstration">% Corrupt packets</span>
-                <el-input placeholder="Corrupt %" v-model="selected_node.packet_simulation.corrupt">
-                  <template slot="append">%</template>
-                </el-input>
-            </div>
-          </el-form>
-          <span slot="footer" class="dialog-footer">
+            <!-- Packet Modal -->
+            <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="large">
+                <el-form>
+                    <el-form-item label="Network Layer">
+                        <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
+                            <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="Application Layer">
+                        <el-select v-model="selected_node.packet_simulation.application_protocol" placeholder="Application Protocol">
+                            <el-option v-for="item in packet_options.Application_Layer" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="Source Port">
+                        <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.source_port">
+                            <template slot="prepend">#</template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="Destination Port">
+                        <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.dest_port">
+                            <template slot="prepend">#</template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="">
+                        <div class="block">
+                            <span class="demonstration">Time to live </span>
+                            <el-input placeholder="Hops" v-model="selected_node.packet_simulation.ttl">
+                                <template slot="prepend">#</template>
+                            </el-input>
+                        </div>
+                        <div class="block">
+                            <span class="demonstration">% Corrupt packets</span>
+                            <el-input placeholder="Corrupt %" v-model="selected_node.packet_simulation.corrupt">
+                                <template slot="append">%</template>
+                            </el-input>
+                        </div>
+                </el-form>
+                <span slot="footer" class="dialog-footer">
             <el-button @click="form_visible.packet = false">Cancel</el-button>
             <el-button type="primary" @click="form_visible.packet = false">Confirm</el-button>
           </span>
-        </el-dialog>
+            </el-dialog>
 
+        </div>
     </div>
-</div>
 
-<!--Imports -->
+    <!--Imports -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-    <script src="https://unpkg.com/vue"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/element-ui/1.4.1/index.js"></script>
     <script type="text/javascript" src="js/app.js"></script>
     <script type="text/javascript" src="js/visualiser.js"></script>
     <script type="text/javascript" src="js/websocket.js"></script>

@@ -4,8 +4,8 @@ CFLAGS=-c
 LIBS=-lcheck -lm -lpthread -lrt
 
 all: run.o
-	swig -python interface.i
-	$(CC) $(CFLAGS) -fPIC -I/usr/include/python2.7 interface_wrap.c 
+	swig -py3 -python interface.i
+	$(CC) $(CFLAGS) -fPIC -I/usr/include/python3.5 interface_wrap.c 
 	gcc -shared run.o interface_wrap.o -o _iptables_sim.so
 
 run.o: iptables.o

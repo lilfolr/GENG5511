@@ -1,4 +1,3 @@
-
 function node_color(is_server, is_client) {
     if (is_server) {
         if (is_client) {
@@ -14,44 +13,38 @@ function node_color(is_server, is_client) {
 
 function alert_msg(msg, level, timeout) {
     if (level == "error") {
-        Materialize.toast(msg, timeout || 200000, "red");
+        app.$notify({
+          title: 'Error',
+          message: msg,
+          type: 'error'
+        });
     } else if (level == "warning") {
-        Materialize.toast(msg, timeout || 8000, "orange");
+        app.$notify({
+          title: 'Warning',
+          message: msg,
+          type: 'warning'
+        });
     } else if (level == "info") {
-        Materialize.toast(msg, timeout || 5000, "blue");
+        app.$notify({
+          title: 'Info',
+          message: msg,
+          type: 'info'
+        });
     }
 }
-var current_node_id = 1;
-var current_edge_id = 0;
+var current_node_id = -1;
+var current_edge_id = -1;
 var nodes
 var edges
 $(function() {
     // SETUP NETWORK
     var nodeDetails;
 
-    app.$data.nodes= [{
-        id: 0,
-        label: 'Client 1',
-        shape: 'circle',
-        type: "C",
-        color: node_color(0, 1),
-        committed: true
-    }, {
-        id: 1,
-        label: 'Server 1',
-        shape: 'circle',
-        type: "S",
-        color: node_color(1, 0),
-        committed: true
-    }];
+    app.$data.nodes= [];
 	nodeDetails = app.$data.nodes;
     nodes = new vis.DataSet(nodeDetails);
 
-    app.$data.edges = [{
-        id: 0,
-        from: 0,
-        to: 1
-    }];
+    app.$data.edges = [];
     edges = new vis.DataSet(app.$data.edges);
     // create a network
     var container = document.getElementById('firewall_network');
@@ -94,26 +87,8 @@ $(function() {
         }
     }
 
-    function load_firewall_dialog(node_id) {
-        websocket_run('get-firewall', node_id, function(){
-            $('#firewall_modal').modal('open');
-        });
-    }
-
-    $('#node_details_firewall').click(function(){
-        if (network.getSelectedNodes().length == 1) {
-            node_id = network.getSelectedNodes()[0];
-            load_firewall_dialog(node_id);
-        } else {
-            alert_msg('Select a node first', 'warning');
-        }
-    });
-
- 
-
     $("#form_node_new").submit(function(e) {
         e.preventDefault();
-        
     });
 
     network.on("click", function(params) {

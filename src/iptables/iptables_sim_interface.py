@@ -1,22 +1,17 @@
 import iptables_sim
+from collections import OrderedDict
+# p=iptables_sim.in_packet()
+# r=iptables_sim.in_rule()
 
-p=iptables_sim.in_packet()
-r=iptables_sim.in_rule()
+# p.ttl = 10
+# p.src_addr = "192.168.1.3"
+# p.dst_addr = "192.168.1.2"
+debug = 1
 
-p.ttl = 10
-p.src_addr = "192.168.1.3"
-p.dst_addr = "192.168.1.2"
-
-packet_match = iptables_sim.run_sim(p,r)
+# packet_match = iptables_sim.run_sim(p,r, debug)
 
 from enum import Enum
 from copy import deepcopy
-
-
-class RuleResults(Enum):
-    ACCEPT = 0
-    DROP = 1
-    REJECT = 2
 
 
 class Rule(object):
@@ -26,7 +21,7 @@ class Rule(object):
     protocol = None
     src = None
     dst = None
-    match_chain = RuleResults.DROP  # Can either be a chain, or a final rule
+    match_chain = "DROP"  # Can either be a chain, or a final rule
 
     def __str__(self):
         return "{} {} {} {} {} {}".format(self.input_device,
@@ -36,7 +31,8 @@ class Rule(object):
                                           self.dst,
                                           str(self.match_chain))
 
-
+BASE_RULES = ["ACCEPT", "REJECT", "DROP"]
+BASE_CHAINS = ["INPUT", "FORWARD", "OUTPUT"]
 class IPTables(object):
     """
     iptables instance. 
@@ -46,37 +42,49 @@ class IPTables(object):
 
     def __init__(self):
         # Start with 3 chains; INPUT FORWARD OUTPUT
-        self.chains = {}
-        self.base_chains = ["INPUT", "FORWARD", "OUTPUT"]
+        self.chains = OrderedDict()
+        self.base_chains = BASE_CHAINS
+        self.base_rules  = BASE_RULES
         for chain in self.base_chains:
             self.create_chain(chain)
+        for chain in self.base_rules:
+            self.create_chain(chain, chain)
 
-    def create_chain(self, chain_name, default_policy=RuleResults.DROP):
+    def create_chain(self, chain_name, default_policy="DROP"):
         default_rule = Rule()
         default_rule.match_chain = default_policy
         self.chains[chain_name] = [deepcopy(default_rule)]  # List of rules
 
     def remove_chain(self, chain_name):
-        if chain_name in self.base_chains:
-            raise ValueError("Can not remove base chain")
+        if chain_name in self.base_chains + self.base_rules:
+            raise ValueError("Can not remove base chain/rule")
         try:
             self.chains.pop(chain_name)
         except KeyError:
             print("Chain {} does not exist".format(chain_name))
 
     def add_chain_rule(self, chain_name, ip_rule, index_location=0):
-        chain = self.chains.get(chain_name, None)
+        if chain_name in self.base_rules:
+            raise ValueError("Can not add rules to a base rule")
+        chain = self.chains[chain_name]
         if chain:
             chain.insert(index_location, ip_rule)
         else:
-            print("Chain {} does not exist".format(chain_name))
+            raise ValueError("Chain {} does not exist".format(chain_name))
 
     def remove_chain_rule(self, chain_name, index_location):
+        if chain_name in self.base_rules:
+            raise ValueError("Can not remove rules from a base rule")
         chain = self.chains.get(chain_name, None)
         if chain:
+            if index_location==len(chain)-1:
+                raise ValueError("Can not remove the default rule")
             del chain[index_location]
         else:
-            print("Chain {} does not exist".format(chain_name))
+            raise ValueError("Chain {} does not exist".format(chain_name))
+        if len(chain)==0:
+            self.create_chain(chain_name)
+        
 
     def __str__(self):
         to_return = ""
@@ -87,3 +95,6 @@ class IPTables(object):
                 to_return += " >Rule {} {}\n".format(str(i), str(rule))
                 i += 1
         return to_return
+
+def check_rule_packet(rule, packet):
+    return iptables_sim.run_sim(packet, rule, debug)

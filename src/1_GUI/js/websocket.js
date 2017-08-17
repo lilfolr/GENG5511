@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost:8080');
+var socket = io.connect('http://ip_vm:8080/');
 app.$message({
   message: 'Connecting to socket...',
   type: 'info'
@@ -24,6 +24,13 @@ socket.on('error', function(er){
   });
 })
 
+socket.on('update-table', function(table_data){
+  for (i=0;i<table_data.length;i++){
+    table_data[i].Node_Name = app.$data.nodes[table_data[i].Node_ID].label
+  }
+  app.$data.tableData=table_data
+})
+
 /**
  * Possible methods include:
  * create-node
@@ -37,11 +44,32 @@ socket.on('error', function(er){
  */
 function websocket_run(func, data, succ_func){
 	app.$data.loading=true;
-    // Timeout to simluate network
-    setTimeout(function(){
-        console.log('Running '+func+' with data '+data);
-        socket.emit(func,data)
-    	  app.$data.loading=false;
-        succ_func()
-    },1000)
+    console.log('Running '+func+' with data '+data);
+    socket.emit(func,data, (data) => {
+      console.log(data)
+      if (typeof data === 'undefined')
+        data = ["S", ""]
+      status = data[0];
+      msg = data[1];
+      if (status=="S"){
+        if (data.length>2)
+          succ_func(data[2]);
+        else
+          succ_func();
+        if (msg!=="")
+        app.$message({
+          showClose: true,
+          message: msg,
+          type: 'info'
+        });
+      }
+      else if (status=="E")
+        app.$notify({
+          title: 'An error occured',
+          message: msg,
+          type: 'error'
+        });
+    	app.$data.loading=false;
+    }
+  );
 }

@@ -17,7 +17,7 @@ typedef struct in_rules{
 	char* indev;
 	char* outdev;
 } in_rule;
-extern int run_sim(in_packet *packet, in_rule *rule);
+extern int run_sim(in_packet *packet, in_rule *rule, int debug);
 %}
 typedef struct in_packets{
     int ttl;
@@ -34,4 +34,4 @@ typedef struct in_rules{
 	char* outdev;
 } in_rule;
 
-extern int run_sim(in_packet *packet, in_rule *rule);
+extern int run_sim(in_packet *packet, in_rule *rule, int debug);

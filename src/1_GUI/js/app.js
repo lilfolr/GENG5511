@@ -32,9 +32,45 @@ app = new Vue({
             },
             firewall:{
                 type: "",
-                current_rules: "-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT ",
-                clear_current: "Clear",
-                new_rules: ""
+                current_rules: [
+                    {
+                        id: "C1",
+                        label: 'INPUT ',
+                        children: [{
+                            id: 4,
+                            label: 'Rule 1',
+                        },
+                        {
+                            id: 3,
+                            label: 'Rule 2',
+                            },
+                        ]
+                    }   
+                ],
+                new_rule: {
+                    input_device:{
+                        any: true,
+                        value: ""
+                    },
+                    output_device:{
+                        any: true,
+                        value: ""
+                    },
+                    protocol:{
+                        any: true,
+                        value: ""
+                    },
+                    src:{
+                        any: true,
+                        value: ""
+                    },
+                    dst:{
+                        any: true,
+                        value: ""
+                    },
+                    chain: ""
+
+                }
             }
         },
         nodes: [],
@@ -85,35 +121,7 @@ app = new Vue({
             packet: false,
             firewall: false
         },
-        tableData: [{
-            Node_ID: '0',
-            Node_Name: 'Client 1',
-            Packets_In: '100',
-            Packets_In_Block: '30',
-            Packets_Out: '30',
-            Packets_Out_Block: '2',
-          }, {
-            Node_ID: '1',
-            Node_Name: 'Client 2',
-            Packets_In: '10',
-            Packets_In_Block: '0',
-            Packets_Out: '30',
-            Packets_Out_Block: '2',
-          }, {
-            Node_ID: '2',
-            Node_Name: 'Server 1',
-            Packets_In: '10',
-            Packets_In_Block: '3',
-            Packets_Out: '30',
-            Packets_Out_Block: '0',
-          }, {
-            Node_ID: '3',
-            Node_Name: 'Server 2',
-            Packets_In: '300',
-            Packets_In_Block: '20',
-            Packets_Out: '360',
-            Packets_Out_Block: '0',
-          }]
+        tableData: [],
     },
 
     mounted : function()
@@ -146,11 +154,33 @@ app = new Vue({
                     corrupt: 0
                 },
                 firewall:{
-                    type: "",
-                    current_rules: "-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT<br/>-A FORWARD -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT <br/>-A FORWARD -i eth1 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT <br/>-A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT ",
-                    clear_current: "Clear",
-                    new_rules: ""
-                }
+                            type: "",
+                            current_rules: [
+                            ],
+                        new_rule: {
+                            input_device:{
+                                any: true,
+                                value: ""
+                            },
+                            output_device:{
+                                any: true,
+                                value: ""
+                            },
+                            protocol:{
+                                any: true,
+                                value: ""
+                            },
+                            src:{
+                                any: true,
+                                value: ""
+                            },
+                            dst:{
+                                any: true,
+                                value: ""
+                            },
+                            chain: ""
+                        }
+                    }
             }
             this.close_side_bar();
         },
@@ -179,7 +209,13 @@ app = new Vue({
             }
         },
         handleSelect: function(key, keyPath) {
-            if (key=="2-1"){
+            if (key=="4"){
+                websocket_run('run-simulation', "", ()=>{});
+            }
+            else if (key=="3"){
+                websocket_run('update-status-table', "loud", ()=>{});
+            }
+            else if (key=="2-1"){
                 this.clear_selected_node();
                 this.open_side_bar();
             }
@@ -196,11 +232,7 @@ app = new Vue({
                     websocket_run('delete-node', id, function() {
                         network.deleteSelected();
                         this.nodes[id] = null;
-                        this.$notify({
-                          title: 'Node deleted',
-                          message: 'Node has been removed',
-                          type: 'info'
-                      });
+                        websocket_run('update-status-table');
                     }); 
                 }
                 this.clear_selected_node();
@@ -244,7 +276,8 @@ app = new Vue({
                       type: 'warning'
                   });
                 } else {
-                    websocket_run('get-firewall', node_id, function(){
+                    websocket_run('get-firewall', node_id, function(firewall_data){
+                        app.$data.selected_node.firewall.current_rules = firewall_data;
                         app.$data.form_visible.firewall=true;
                     });
                 }
@@ -272,6 +305,7 @@ app = new Vue({
                         easingFunction: "easeInQuad"
                     }
                 });
+                websocket_run('update-status-table');
             });
             this.clear_selected_node();
         },
@@ -281,6 +315,7 @@ app = new Vue({
             var id = selectedNode.id;        // Needs to be manually set to avoid race
             var type = selectedNode.type;
             var color = type=="S"?"#ff7b7b":"#7dff7b";
+            var nodeDetails = this.nodes;
             websocket_run('update-node', id, function() {
                 nodes.update({
                     id: id,
@@ -302,6 +337,50 @@ app = new Vue({
                     }
                 });
             this.clear_selected_node();
+        },
+        delete_firewall_rule: function(rule_id){
+            node_id = app.$data.selected_node.id;
+            checked_nodes = app.$refs.tree.getCheckedNodes().map((a)=>{return a.$treeNodeId}) // Array of ids [could inc chain]
+            rules = [];
+            for (i=0;i<app.$refs.tree.data.length;i++){
+                chain = app.$refs.tree.data[i];
+                for(j=0;j<chain.children.length; j++)
+                    if (checked_nodes.indexOf(chain.children[j].$treeNodeId) >= 0)
+                        rules.push([chain.id, chain.children[j].id]);
+            }
+            if (rules.length===0)
+                this.$notify({
+                      title: 'Warning',
+                      message: 'No rules checked to delete.',
+                      type: 'warning'
+                  });
+            else
+            websocket_run("delete-rule",[node_id, rules], ()=>{
+               app.load_firewall_dialog();
+            })
+        },
+        add_firewall_rule: function(){
+            node_id = app.$data.selected_node.id;
+            new_rule = app.$data.selected_node.firewall.new_rule;
+            rule_data = {
+                chain: new_rule.chain,
+                dst: !new_rule.dst.any && new_rule.dst.value,
+                src: !new_rule.src.any && new_rule.src.value,
+                input_device: !new_rule.input_device.any && new_rule.input_device.value,
+                output_device: !new_rule.output_device.any && new_rule.output_device.value,
+                protocol: !new_rule.protocol.any && new_rule.protocol.value,
+            }
+            if (app.$refs.tree.getCheckedNodes().filter((e)=>{return typeof e.children !=="undefined"}).length !== 1)
+                this.$notify({
+                      title: 'Warning',
+                      message: 'Select 1 chain to append to',
+                      type: 'warning'
+                  });
+            else {
+                websocket_run("add-rule", [node_id, app.$refs.tree.getCheckedNodes().filter((e)=>{return typeof e.children !=="undefined"})[0].id, rule_data], ()=>{
+                app.load_firewall_dialog();
+                });
+            }
         }
     },
 });
