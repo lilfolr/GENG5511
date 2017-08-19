@@ -24,6 +24,8 @@ save_results () : json results
 
 import logging
 import socketio
+import csv
+from io import StringIO
 from aiohttp import web
 from application import *
 
@@ -226,8 +228,22 @@ async def run_simulation(sid, data):
             
         return ["S","Simulation Complete"]
     except Exception as e:
-        raise
         return ["E", "Error running simulation - "+str(e)]
+
+@sio.on('upload-sim', namespace='')
+async def upload_simulation_file(sid, data):
+    try:
+        check_user(sid)
+        file_data = StringIO(data)  #WARNING: could contain malicious things
+        reader = csv.reader(file_data, delimiter=',')
+        for row in reader:
+            #TODO: Do stuff with data
+            print('\t'.join(row))
+        return ["S","Simulation file uploaded"]
+        
+    except Exception as e:
+        return ["E", "Error uploading simulation - "+str(e)]
+
 
 def check_user(sid):
     if sid not in active_users:

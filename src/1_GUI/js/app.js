@@ -122,6 +122,7 @@ app = new Vue({
         },
         loading:false,
         form_visible:{
+            fileUpload: false,
             packet: false,
             firewall: false
         },
@@ -260,8 +261,7 @@ app = new Vue({
             }
             else if (key=="3-2"){
                 // Upload sim file
-                app.$data['simulation']["packets_loaded"] = true;
-                app.$data['simulation']["simulation_run"] = false;
+                app.$data['form_visible']['fileUpload']=true;
             }
             else if (key=="3-3"){
                 // Run simulation
@@ -417,6 +417,21 @@ app = new Vue({
                 app.load_firewall_dialog();
                 });
             }
+        },
+        submitUpload() {
+            this.$refs.upload.submit();
+        },
+        beforeUploadEvent: function(file){
+            var reader = new FileReader();
+            reader.onload = (e)=>{
+                websocket_run('upload-sim', e.target.result, function() {
+                    app.$data['simulation']["packets_loaded"] = true;
+                    app.$data['simulation']["simulation_run"] = false;
+                    app.$data['form_visible']['fileUpload'] = false;
+                }); 
+            };
+            reader.readAsText(file);
+            return false;
         }
     },
 });
