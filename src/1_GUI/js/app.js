@@ -18,6 +18,7 @@ app = new Vue({
         simulation:{
             packets_loaded: false,
             simulation_run: false,
+            template_data: ""
         },
         selected_node: {
             color:"",
@@ -123,6 +124,7 @@ app = new Vue({
         loading:false,
         form_visible:{
             fileUpload: false,
+            downloadFile: false,
             packet: false,
             firewall: false
         },
@@ -257,7 +259,10 @@ app = new Vue({
             }
             else if (key=="3-1"){
                 //Download template
-
+                websocket_run('download-sim-template', "", (d)=>{
+                    app.$data['simulation']['template_data'] = d;
+                    app.$data['form_visible']['downloadFile']=true;
+                });
             }
             else if (key=="3-2"){
                 // Upload sim file
@@ -432,6 +437,29 @@ app = new Vue({
             };
             reader.readAsText(file);
             return false;
+        },
+        download_template: function(){
+            template_data = app.$data['simulation']['template_data'];
+            if (template_data===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No template data found. Please try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(template_data));
+                pom.setAttribute('download', "Packet_Template.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
+            }
         }
     },
 });

@@ -1,7 +1,8 @@
-import os
+import os, io
 import sys
 import random
 import logging
+import csv
 
 from database_client import DatabaseClient
 
@@ -51,6 +52,21 @@ class Application(object):
 
     def get_node_firewall(self, node_id):
         return self.current_nodes[node_id]["firewall"]
+
+    def get_sim_template(self):
+        """returns string template for packet simulation"""
+        output = io.StringIO()
+        csvWriter = csv.writer(output)
+        csvWriter.writerow(['packet_id', 'network_layer', 'application_layer', 'source_port', 
+                            'destination_port', 'source_ip', 'destination_ip', 'ttl'])
+        i=1
+        for node in self.current_nodes:
+            csvWriter.writerow([str(i), 'icmp', '', '', '', self.current_nodes[node]['ip'], '', '2'])
+            i += 1
+        str_out = output.getvalue()
+        output.close()
+        return str_out
+
 
     def simulate(self, packets):
         """

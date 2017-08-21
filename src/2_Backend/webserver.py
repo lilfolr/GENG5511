@@ -230,6 +230,15 @@ async def run_simulation(sid, data):
     except Exception as e:
         return ["E", "Error running simulation - "+str(e)]
 
+@sio.on('download-sim-template', namespace='')
+async def download_sim_file(sid, data):
+    try:
+        check_user(sid)
+        str_template = active_users[sid].get_sim_template()
+        return ["S","", str_template]
+    except Exception as e:
+        return ["E", "Error generating tempalte - "+str(e)]
+
 @sio.on('upload-sim', namespace='')
 async def upload_simulation_file(sid, data):
     try:

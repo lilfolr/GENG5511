@@ -9,7 +9,9 @@
             background-color: #48576a !important;
             color: #FFFFFF !important;
         }
-
+        .el-tag {
+            margin: 3px;
+        }
         .dropdown-content li>a {
             color: #000000 !important;
         }
@@ -128,6 +130,38 @@
                 </el-submenu>
             </el-menu>
 
+            <!-- Download template file Modal -->
+            <el-dialog :title="'Template Generated'" :visible.sync="form_visible.downloadFile" size="small">
+                <el-form>
+                    <el-row :gutter="20" justify="center">
+                        <el-col :span="7">&nbsp;
+                        </el-col>                                    
+                        <el-col :span="10">
+                          <el-button @click="download_template" type="primary">Download Template</el-button>
+                        </el-col>
+                        <el-col :span="7">&nbsp;
+                        </el-col>
+                    </el-row>
+                    <h4>Accepted Values:</h4> (use the value in square brackets in the csv template)<br/>
+                    <el-collapse>
+                        <el-collapse-item title="Network Layer" name="1">
+                            <el-tag v-for="item in packet_options.Network_Layer" type="primary" :value="item.key">{{item.label}} [{{item.value}}]</el-tag>
+                        </el-collapse-item>
+                        <el-collapse-item title="Application Layer" name="2">
+                            <el-tag v-for="item in packet_options.Application_Layer" type="primary" :value="item">[{{item}}]</el-tag>
+                        </el-collapse-item>
+                        <el-collapse-item title="Source/Destination IP" name="3">
+                            <el-tag v-for="item in tableData" type="primary" :value="item.Node_Addr">{{item.Node_Name}} [{{item.Node_Addr}}]</el-tag>
+                        </el-collapse-item>
+                    </el-collapse>
+                    
+                        
+                </el-form>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="form_visible.downloadFile = false">Cancel</el-button>
+                </span> 
+            </el-dialog>
+
             <!-- Upload file Modal -->
             <el-dialog :title="'Upload Simulation File'" :visible.sync="form_visible.fileUpload">
                 <el-form>
@@ -143,7 +177,7 @@
                 </el-form>
                 <span slot="footer" class="dialog-footer">
                     <el-button @click="form_visible.fileUpload = false">Cancel</el-button>
-                     <el-button @click="submitUpload" type="primary" >Upload</el-button>
+                    <el-button @click="submitUpload" type="primary" >Upload</el-button>
                 </span> 
             </el-dialog>
 
@@ -253,7 +287,7 @@
             </el-dialog>
 
             <!-- Packet Modal -->
-            <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="large">
+            <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="small">
                 <el-form>
                     <el-form-item label="Network Layer">
                         <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
@@ -280,12 +314,6 @@
                             <span class="demonstration">Time to live </span>
                             <el-input placeholder="Hops" v-model="selected_node.packet_simulation.ttl">
                                 <template slot="prepend">#</template>
-                            </el-input>
-                        </div>
-                        <div class="block">
-                            <span class="demonstration">% Corrupt packets</span>
-                            <el-input placeholder="Corrupt %" v-model="selected_node.packet_simulation.corrupt">
-                                <template slot="append">%</template>
                             </el-input>
                         </div>
                 </el-form>
