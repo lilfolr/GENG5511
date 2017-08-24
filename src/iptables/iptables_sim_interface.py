@@ -102,4 +102,5 @@ def check_rule_packet(rule, packet):
 def lookup_protocol(protocol_name):
     # See botton of run.c
     if protocol_name.lower() == 'icmp':
-        return 1    return None
+        return 1
+    return None

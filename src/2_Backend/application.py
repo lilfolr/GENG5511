@@ -119,19 +119,19 @@ class Application(object):
             if not self._valid_sim_packet_row(row):
                 raise Exception("Row {} is invalid".format(str(row_n+1)))
             print (row)     
-            packet = in_packets()
-            pacet.ttl      = int(row[7])
-            pacet.protocol = ip.lookup_protocol(row[1])
-            pacet.src_addr = row[5]
-            pacet.dst_addr = row[6]
+            packet = in_packet()
+            packet.ttl      = int(row[7])
+            packet.protocol = ip.lookup_protocol(row[1])
+            packet.src_addr = row[5]
+            packet.dst_addr = row[6]
             self.sim_packets.append(packet)
-    def _valid_sim_packet_row(row):
-        if len(row)!==7:
+    def _valid_sim_packet_row(self,row):
+        if len(row)!=8:
             return False
         for r in row:
             if not isinstance(r, str):
                 return False
-        if not ip.lookup_protocol(row[1])
+        if not ip.lookup_protocol(row[1]):
             return False
         return True
 
