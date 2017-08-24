@@ -88,14 +88,11 @@ class Application(object):
         """
         if not packets:
             packets = self.sim_packets
-        for k, v in packets.items():
-            packet = in_packet()
-            packet.ttl = v['TTL']
-            packet.protocol = 1  # icmp
-            packet.dst_addr = self.current_nodes[v['DN']]["ip"]
-            packet.src_addr = self.current_nodes[v['SN']]["ip"]
-            src_node_out_chain = self.current_nodes[v['SN']]["firewall"].chains["OUTPUT"]
-            dst_node_in_chain = self.current_nodes[v['DN']]["firewall"].chains["INPUT"]
+        for packet in packets.items():
+            src_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.src_addr][0]
+            dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dsf_addr][0]
+            src_node_out_chain = self.current_nodes[src_node_id]["firewall"].chains["OUTPUT"]
+            dst_node_in_chain = self.current_nodes[dst_node_id]["firewall"].chains["INPUT"]
 
             # Check output
             logger.info("Checking Server node")
@@ -104,6 +101,7 @@ class Application(object):
 
             # check input                        
             if out_res == "ACCEPT":
+                logger.info("Checking Client node")
                 in_res = self._traverse_chain(v['DN'], dts_node_out_chain, packet, 0)
             else:
                 in_res = "None"
@@ -140,12 +138,12 @@ class Application(object):
         Returns "DROP"; "ACCEPT"; or "REJECT"
         """
         if recursive_count>500:
-            logger.warning("Recursion detected - dropping")
+            logger.warning("Recursion loop detected - dropping")
             return "DROP"       # Prevent looped chains breaking the system
         for rule in chain:
             ip_rule = in_rule()
-            ip_rule.protocol = 1 # icmp
-            ip_rule.src_addr = rule.src if rule.src else ""
+            ip_rule.protocol = ip.lookup_protocol(rule.protocol)
+            ip_rule.src_addr = rulne.src if rule.src else ""
             ip_rule.dst_addr = rule.dst if rule.dst else ""  # TODO: 'ANY' is probably a mask
             ip_rule.indev = rule.input_device if rule.input_device else ""
             ip_rule.outdev = rule.output_device if rule.output_device else ""

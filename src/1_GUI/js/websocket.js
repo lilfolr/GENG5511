@@ -16,6 +16,7 @@ socket.on('disconnect', function () {
     type: 'error',
     duration: 0
   });
+  app.$data.loading=true;
 });
 socket.on('error', function(er){
   app.$notify({
