@@ -125,8 +125,16 @@ class Application(object):
             pacet.src_addr = row[5]
             pacet.dst_addr = row[6]
             self.sim_packets.append(packet)
+    def _valid_sim_packet_row(row):
+        if len(row)!==7:
+            return False
+        for r in row:
+            if not isinstance(r, str):
+                return False
+        if not ip.lookup_protocol(row[1])
+            return False
+        return True
 
-    
     def _traverse_chain(self, node, chain, packet, recursive_count):
         """
         Returns "DROP"; "ACCEPT"; or "REJECT"
