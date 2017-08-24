@@ -3,6 +3,8 @@ import sys
 import random
 import logging
 import csv
+import json
+from copy import deepcopy
 
 from database_client import DatabaseClient
 
@@ -22,7 +24,9 @@ class Application(object):
         self.current_nodes = {}
         self.node_connections = []
         self.db = DatabaseClient()
-        self.sim_packets = []
+        self.sim_packets = []  # [ip.in_packet]
+        # 3 result files: Per packet; Per node per packet & per rule per node per packet
+        self.sim_results = {}  # 
 
     def create_node(self, node_id, firewall_type="IPTables"):
         """
@@ -75,13 +79,13 @@ class Application(object):
                     "NL": "ICMP",
                     "AL": "",
                     "SP": 22,
-                    "DP": 22, 
+                    "DP": 22,
                     "SN": 0,
                     "DN": 1,
                     "TTL": 33,
                 }]
-            returns 
-            ( 
+            returns
+            (
                 (src: (A, B, R)), //add forward at some stage
                 (dst: (A, B, R))
             )
@@ -93,18 +97,45 @@ class Application(object):
             dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dst_addr][0]
             src_node_out_chain = self.current_nodes[src_node_id]["firewall"].chains["OUTPUT"]
             dst_node_in_chain = self.current_nodes[dst_node_id]["firewall"].chains["INPUT"]
-
+            packet_result = {
+                "Packet_ID"         "-1"
+                "Source_IP":        packet.src_addr,
+                "Destination_IP":   packet.dst_addr,
+                "Protocol":         ip.reverse_lookup_protocol(packet.Protocol),
+                "Result":           "",
+            }
             # Check output
             logger.info("Checking Server node")
             out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0)
+            node_result = deepcopy(packet_result)
+            self.sim_results["node_results"].append({
+                'Packet_ID':    '-1',
+                'Hop_Number':   '1',
+                'Node_IP':      packet.src_addr, 
+                'Direction':    'Output, 
+                'Protocol':     ip.reverse_lookup_protocol(packet.Protocol), 
+                'Result':       out_res
+            })
+            
             # TODO: check forward
 
-            # check input                        
+            # check input
             if out_res == "ACCEPT":
                 logger.info("Checking Client node")
-                in_res = self._traverse_chain(dst_node_id, dts_node_out_chain, packet, 0)
+                in_res = self._traverse_chain(dst_node_id, dst_node_in_chain, packet, 0)
+                self.sim_results["node_results"].append({
+                    'Packet_ID':    '-1',
+                    'Hop_Number':   '2',
+                    'Node_IP':      packet.dst_addr, 
+                    'Direction':    'Input, 
+                    'Protocol':     ip.reverse_lookup_protocol(packet.Protocol), 
+                    'Result':       in_res
+                })
+                packet_result["Result"] = in_res
             else:
                 in_res = "None"
+                packet_result["Result"] = out_res
+            self.sim_results["packet_results"].append(packet_result)
             yield (
                 (src_node_id, (int(out_res=="ACCEPT"), int(out_res=="DROP"), int(out_res=="REJECT"))),
                 (dst_node_id, (int(in_res=="ACCEPT"), int(in_res=="DROP"), int(in_res=="REJECT")))
@@ -137,6 +168,9 @@ class Application(object):
         """
         Returns "DROP"; "ACCEPT"; or "REJECT"
         """
+        # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
+        rule_result = {"Packet_ID": "-1", "Chain": chain, "Node_ID": self.current_nodes[node]["ip"], 
+                       "Protocol": ip.reverse_lookup_protocol(packet.Protocol)}
         if recursive_count>500:
             logger.warning("Recursion loop detected - dropping")
             return "DROP"       # Prevent looped chains breaking the system
@@ -144,24 +178,40 @@ class Application(object):
             ip_rule = in_rule()
             prot_no = ip.lookup_protocol(rule.protocol)
             ip_rule.protocol = prot_no if prot_no else 1  #TODO: Allow for 'ANY' protocol
-            ip_rule.src_addr = rulne.src if rule.src else ""
+            ip_rule.src_addr = rule.src if rule.src else ""
             ip_rule.dst_addr = rule.dst if rule.dst else ""  # TODO: 'ANY' is probably a mask
             ip_rule.indev = rule.input_device if rule.input_device else ""
             ip_rule.outdev = rule.output_device if rule.output_device else ""
             if ip.check_rule_packet(ip_rule, packet):
                 if rule.match in ip.BASE_RULES:
+                    tmp_res = deepcopy(rule_result)
+                    tmp_res["Rule"] = json.dumps(ip_rule.__dict__)
+                    tmp_res["Result"] = "DROP"
+                    self.sim_packets["rule_results"].append(tmp_res)
                     return rule.match
                 else:
                     try:
-                        next_chain = self.current_nodes[v['SN']]["firewall"].chains[rule.match]
+                        next_chain = self.current_nodes[node]["firewall"].chains[rule.match]
+                        tmp_res = deepcopy(rule_result)
+                        tmp_res["Rule"] = json.dumps(ip_rule.__dict__)
+                        tmp_res["Result"] = next_chain
+                        self.sim_packets["rule_results"].append(tmp_res)
                         return self._traverse_chain(node, next_chain, packet, recursive_count+1)
                     except KeyError:
                         logger.warning("Chain {} can't be found".format(rule.match))
+                        tmp_res = deepcopy(rule_result)
+                        tmp_res["Rule"] = "Chain not found"
+                        tmp_res["Result"] = "DROP"
+                        self.sim_packets["rule_results"].append(tmp_res)
                         return "DROP"
             else:
                 continue
         # Shouldn't happen as chains always end on a catch-all rule
         logger.warning("Shouldn't be here... defaulting to drop")
+        tmp_res = deepcopy(rule_result)
+        tmp_res["Rule"] = "Default chain policy"
+        tmp_res["Result"] = "DROP"
+        self.sim_packets["rule_results"].append(tmp_res)
         return "DROP"
 
 

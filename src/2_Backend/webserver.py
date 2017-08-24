@@ -68,7 +68,7 @@ async def create_node(sid, data):
     except Exception as e:
         return ["E", "Error creating node - "+str(e)]
     else:
-        return ["S","Node Created"]
+        return ["S", "Node Created"]
 
 @sio.on('delete-node', namespace='')
 async def delete_node(sid, data):
@@ -80,7 +80,7 @@ async def delete_node(sid, data):
     except Exception as e:
         return ["E", "Error deleting node - "+str(e)]
     else:
-        return ["S","Node deleted "]
+        return ["S", "Node deleted "]
 
 @sio.on('add-edge', namespace='')
 async def connect_nodes(sid, data):
@@ -90,14 +90,14 @@ async def connect_nodes(sid, data):
     except Exception as e:
         return ["E", "Error connecting nodes - "+str(e)]
     else:
-        return ["S","Nodes connected "]
+        return ["S", "Nodes connected "]
 
 @sio.on('update-status-table', namespace='')
 async def update_status_table_def(sid, data):
     await update_status_table(sid)
     print(data)
-    if data=="loud":
-        return ["S","Table update triggered"]
+    if data == "loud":
+        return ["S", "Table update triggered"]
     # Quite update
     return ["N"]
 
@@ -135,7 +135,7 @@ def delete_rule(sid, data):
     try:
         check_user(sid)
         node_id = data[0]
-        rules = data[1]  
+        rules = data[1]
         for r in rules:
             chain, rule = r
             logger.info("Deleting {} from {} - node {}".format(rule, chain, node_id))
@@ -158,7 +158,7 @@ async def update_status_table(sid):
 
 @sio.on('add-rule')
 def add_rule(sid, data):
-    import iptables_sim_interface as ip 
+    import iptables_sim_interface as ip
     try:
         msg = "Rule added"
         check_user(sid)
@@ -176,7 +176,7 @@ def add_rule(sid, data):
         logger.info("1")
         if not rule["chain"]:
             raise ValueError("Match chain must have a value")
-        logger.info("2")        
+        logger.info("2")
         if rule["chain"] not in firewall.chains.keys():
             firewall.create_chain(rule["chain"])
             logger.info("3")
@@ -253,15 +253,29 @@ async def upload_simulation_file(sid, data):
         return ["E", "Error uploading simulation - "+str(e)]
 
 @sio.on('get-sim-results', namespace='')
-async dev get_sim_results(sid):
+async def get_sim_results(sid):
     try:
         check_user(sid)
-        file_data = StringIO(data) 
-        with open(file_data, 'wb') as csv_file:
-            writer = csv.writer(csv_file, ["headers"])
-            writer.writeheader()
-            writer.writerows(active_users[sid].sim_results)
-        return ["S","", results.getvalue()]
+        to_return = {"packet":"","node":"","rule":""}
+        # Packet
+        file_data = StringIO() 
+        writer = csv.writer(file_data, ['Packet_ID', 'Source_IP', 'Destination_IP', 'Protocol', 'Result'])
+        writer.writeheader()
+        writer.writerows(active_users[sid].sim_results['packet'])
+        to_return["packet"] = file_data.getvalue()
+        # Node
+        file_data = StringIO() 
+        writer = csv.writer(file_data, ['Packet_ID', 'Hop_Number', 'Node_IP', 'Direction', 'Protocol', 'Result' ])
+        writer.writeheader()
+        writer.writerows(active_users[sid].sim_results["node"])
+        to_return["node"] = file_data.getvalue()
+        # Rule
+        file_data = StringIO() 
+        writer = csv.writer(file_data, ['Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'])
+        writer.writeheader()
+        writer.writerows(active_users[sid].sim_results["rule"])
+        to_return["rule"] = file_data.getvalue()
+        return ["S","", to_return]
     except Exception as e:
         return ["E", "Error uploading simulation - "+str(e)]
 
