@@ -252,6 +252,18 @@ async def upload_simulation_file(sid, data):
     except Exception as e:
         return ["E", "Error uploading simulation - "+str(e)]
 
+@sio.on('get-sim-results', namespace='')
+async dev get_sim_results(sid):
+    try:
+        check_user(sid)
+        file_data = StringIO(data) 
+        with open(file_data, 'wb') as csv_file:
+            writer = csv.writer(csv_file, ["headers"])
+            writer.writeheader()
+            writer.writerows(active_users[sid].sim_results)
+        return ["S","", results.getvalue()]
+    except Exception as e:
+        return ["E", "Error uploading simulation - "+str(e)]
 
 def check_user(sid):
     if sid not in active_users:

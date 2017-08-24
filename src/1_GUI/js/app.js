@@ -18,7 +18,10 @@ app = new Vue({
         simulation:{
             packets_loaded: false,
             simulation_run: false,
-            template_data: ""
+            template_data: "",
+            results_packet: "",
+            results_node: "",
+            results_rule: ""
         },
         selected_node: {
             color:"",
@@ -125,6 +128,7 @@ app = new Vue({
         form_visible:{
             fileUpload: false,
             downloadFile: false,
+            downloadResults: true,
             packet: false,
             firewall: false
         },
@@ -290,7 +294,19 @@ app = new Vue({
                         type: 'error'
                       });
                 }else{
-
+                    websocket_run('get-sim-results', "", (result)=>{
+                        var pom = document.createElement('a');
+                        pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result));
+                        pom.setAttribute('download', "Simulation_Results.csv");
+                        if (document.createEvent) {
+                            var event = document.createEvent('MouseEvents');
+                            event.initEvent('click', true, true);
+                            pom.dispatchEvent(event);
+                        }
+                        else {
+                            pom.click();
+                        }
+                    });
                 }
             }
             },
@@ -449,6 +465,75 @@ app = new Vue({
             }else{
                 var pom = document.createElement('a');
                 pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(template_data));
+                pom.setAttribute('download', "Packet_Template.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
+            }
+        },
+        download_results_packet: function(){
+            results = app.$data['simulation']['results_packet'];
+            if (results===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No results data found. Please run the simulation try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
+                pom.setAttribute('download', "Packet_Template.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
+            }
+        },
+        download_results_node: function(){
+            results = app.$data['simulation']['results_node'];
+            if (results===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No results data found. Please run the simulation try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
+                pom.setAttribute('download', "Packet_Template.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
+            }
+        },
+        download_results_rule: function(){
+            results = app.$data['simulation']['results_rule'];
+            if (results===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No results data found. Please run the simulation try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
                 pom.setAttribute('download', "Packet_Template.csv");
             
                 if (document.createEvent) {

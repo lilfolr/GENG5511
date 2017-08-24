@@ -179,6 +179,36 @@
                 </span> 
             </el-dialog>
 
+            <!-- Download results Modal -->
+            <el-dialog :title="'Download results'" :visible.sync="form_visible.downloadResults" size="small">
+                <el-form>
+                    <el-row :gutter="20" justify="center">
+                        <el-col :span="9">
+                          <el-button @click="download_results_packet" type="primary">Packet Results</el-button>
+                        </el-col>
+                        <el-col :span="15">Overview of results. Shows each packets final state.
+                        </el-col>
+                    </el-row><br/>
+                    <el-row :gutter="20" justify="center">
+                        <el-col :span="9">
+                          <el-button @click="download_results_node" type="primary">Node Results</el-button>
+                        </el-col>
+                        <el-col :span="15">More detailed results. Shows each packets progress through every node.
+                        </el-col>
+                    </el-row><br/>
+                    <el-row :gutter="20" justify="center">
+                        <el-col :span="9">
+                          <el-button @click="download_results_rule" type="primary">Rule Results</el-button>
+                        </el-col>
+                        <el-col :span="15">The most detailed results. Shows packets progress through every rule.
+                        </el-col>
+                    </el-row>
+                </el-form>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="form_visible.downloadResults = false">Close</el-button>
+                </span> 
+            </el-dialog>
+
             <!-- Firewall Modal -->
             <el-dialog :title="'Firewall - '+selected_node.label" top="5%" v-model="form_visible.firewall" size="large">
                 <el-form>
