@@ -154,11 +154,9 @@
                             <el-tag v-for="item in tableData" type="primary" :value="item.Node_Addr">{{item.Node_Name}} [{{item.Node_Addr}}]</el-tag>
                         </el-collapse-item>
                     </el-collapse>
-                    
-                        
                 </el-form>
                 <span slot="footer" class="dialog-footer">
-                    <el-button @click="form_visible.downloadFile = false">Cancel</el-button>
+                    <el-button @click="form_visible.downloadFile = false">Close</el-button>
                 </span> 
             </el-dialog>
 
