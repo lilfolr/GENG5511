@@ -245,9 +245,7 @@ async def upload_simulation_file(sid, data):
         check_user(sid)
         file_data = StringIO(data)  #WARNING: could contain malicious things
         reader = csv.reader(file_data, delimiter=',')
-        for row in reader:
-            #TODO: Do stuff with data
-            print('\t'.join(row))
+        active_users[sid].set_sim_packets(reader)
         return ["S","Simulation file uploaded"]
         
     except Exception as e:

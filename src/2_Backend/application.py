@@ -22,6 +22,7 @@ class Application(object):
         self.current_nodes = {}
         self.node_connections = []
         self.db = DatabaseClient()
+        self.sim_packets = []
 
     def create_node(self, node_id, firewall_type="IPTables"):
         """
@@ -68,7 +69,7 @@ class Application(object):
         return str_out
 
 
-    def simulate(self, packets):
+    def simulate(self, packets=None):
         """
             packets: [{
                     "NL": "ICMP",
@@ -85,6 +86,8 @@ class Application(object):
                 (dst: (A, B, R))
             )
         """
+        if not packets:
+            packets = self.sim_packets
         for k, v in packets.items():
             packet = in_packet()
             packet.ttl = v['TTL']
@@ -109,6 +112,21 @@ class Application(object):
                 (v['DN'], (int(in_res=="ACCEPT"), int(in_res=="DROP"), int(in_res=="REJECT")))
             )  
 
+    def set_sim_packets(self, packet_csv):
+        next(packet_csv)  # Skip header row
+        row_n = 0
+        for row in packet_csv:      # ['1', 'icmp', '', '', '', '10.190.0.0', '', '2']
+            if not self._valid_sim_packet_row(row):
+                raise Exception("Row {} is invalid".format(str(row_n+1)))
+            print (row)     
+            packet = in_packets()
+            pacet.ttl      = int(row[7])
+            pacet.protocol = ip.lookup_protocol(row[1])
+            pacet.src_addr = row[5]
+            pacet.dst_addr = row[6]
+            self.sim_packets.append(packet)
+
+    
     def _traverse_chain(self, node, chain, packet, recursive_count):
         """
         Returns "DROP"; "ACCEPT"; or "REJECT"
