@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost:8080/');
+var socket = io.connect('http://ip_vm:8080/');
 app.$message({
   message: 'Connecting to socket...',
   type: 'info'
@@ -12,8 +12,9 @@ socket.on('connect', function () {
 });
 socket.on('disconnect', function () {
   app.$message({
-    message: 'Disconnected from Socket',
-    type: 'warning'
+    message: 'Disconnected from Socket - please refresh the page',
+    type: 'error',
+    duration: 0
   });
 });
 socket.on('error', function(er){
