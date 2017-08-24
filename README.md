@@ -33,13 +33,29 @@ Requirements
 Install & Run:
 --------------
 
+### Installations
+// as sudo
+`apt-get update`
+`apt-get upgrade -y`
+
+`apt-get install build-essential libpcre3-dev -y`
+`apt-get install python3-dev python-pip -y`
+`apt install swig -y`
+`pip install virtualenv`
+
+`git clone https://github.com/lilfolr/geng5511.git`
+
 ### Compile iptables
-`cd src/iptables`  
+`cd geng5511/src/iptables`  
 `make`
 
-### Run webserver
-`cd src/2_Backend`  
-`source env/bin/activate` - Assuming you've got a virtualenv setup, with requirements installed  
+### Install webserver
+`cd ../2_backend/`
+`virtualenv env -p python3`
+`. ./env/bin/activate`
+`pip install -r requirements.txt`
+
+### Running webserver:
 `python webserver.py`
 
 ### Docker container [if used]
