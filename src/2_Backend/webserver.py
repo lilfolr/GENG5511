@@ -208,7 +208,7 @@ async def run_simulation(sid, data):
                 }
         results_out = {q:[0,0, 0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
         results_in = {q:[0,0, 0] for q in active_users[sid].current_nodes.keys()}    # node: (total, blocked)
-        for packet_result in active_users[sid].simulate(sim_data):                # returns {packet_id: blocked?}
+        for packet_result in active_users[sid].simulate():                # returns {packet_id: blocked?}
             results_out[sim_data[packet_result[0][0]]['SN']][0] += packet_result[0][1][0]
             results_out[sim_data[packet_result[0][0]]['SN']][1] += packet_result[0][1][1]
             results_out[sim_data[packet_result[0][0]]['SN']][2] += packet_result[0][1][2]
@@ -228,6 +228,7 @@ async def run_simulation(sid, data):
             
         return ["S","Simulation Complete"]
     except Exception as e:
+        raise
         return ["E", "Error running simulation - "+str(e)]
 
 @sio.on('download-sim-template', namespace='')

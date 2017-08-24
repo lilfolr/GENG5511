@@ -88,26 +88,26 @@ class Application(object):
         """
         if not packets:
             packets = self.sim_packets
-        for packet in packets.items():
+        for packet in packets:
             src_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.src_addr][0]
-            dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dsf_addr][0]
+            dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dst_addr][0]
             src_node_out_chain = self.current_nodes[src_node_id]["firewall"].chains["OUTPUT"]
             dst_node_in_chain = self.current_nodes[dst_node_id]["firewall"].chains["INPUT"]
 
             # Check output
             logger.info("Checking Server node")
-            out_res = self._traverse_chain(v['SN'], src_node_out_chain, packet, 0)
+            out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0)
             # TODO: check forward
 
             # check input                        
             if out_res == "ACCEPT":
                 logger.info("Checking Client node")
-                in_res = self._traverse_chain(v['DN'], dts_node_out_chain, packet, 0)
+                in_res = self._traverse_chain(dst_node_id, dts_node_out_chain, packet, 0)
             else:
                 in_res = "None"
             yield (
-                (v['SN'], (int(out_res=="ACCEPT"), int(out_res=="DROP"), int(out_res=="REJECT"))),
-                (v['DN'], (int(in_res=="ACCEPT"), int(in_res=="DROP"), int(in_res=="REJECT")))
+                (src_node_id, (int(out_res=="ACCEPT"), int(out_res=="DROP"), int(out_res=="REJECT"))),
+                (dst_node_id, (int(in_res=="ACCEPT"), int(in_res=="DROP"), int(in_res=="REJECT")))
             )  
 
     def set_sim_packets(self, packet_csv):
@@ -142,7 +142,8 @@ class Application(object):
             return "DROP"       # Prevent looped chains breaking the system
         for rule in chain:
             ip_rule = in_rule()
-            ip_rule.protocol = ip.lookup_protocol(rule.protocol)
+            prot_no = ip.lookup_protocol(rule.protocol)
+            ip_rule.protocol = prot_no if prot_no else ""
             ip_rule.src_addr = rulne.src if rule.src else ""
             ip_rule.dst_addr = rule.dst if rule.dst else ""  # TODO: 'ANY' is probably a mask
             ip_rule.indev = rule.input_device if rule.input_device else ""
