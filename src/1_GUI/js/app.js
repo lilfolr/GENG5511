@@ -128,7 +128,7 @@ app = new Vue({
         form_visible:{
             fileUpload: false,
             downloadFile: false,
-            downloadResults: true,
+            downloadResults: false,
             packet: false,
             firewall: false
         },
