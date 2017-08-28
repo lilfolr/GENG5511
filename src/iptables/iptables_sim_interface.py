@@ -106,6 +106,6 @@ def lookup_protocol(protocol_name):
     return None
 
 def reverse_lookup_protocol(protocol_id):
-    if protocol_id  == 1
+    if protocol_id == 1:
         return "ICMP"
     return None

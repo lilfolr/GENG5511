@@ -26,7 +26,7 @@ class Application(object):
         self.db = DatabaseClient()
         self.sim_packets = []  # [ip.in_packet]
         # 3 result files: Per packet; Per node per packet & per rule per node per packet
-        self.sim_results = {}  # 
+        self.sim_results = {'packet_results':[],'node_results':[],'rule_results':[]}  # 
 
     def create_node(self, node_id, firewall_type="IPTables"):
         """
@@ -93,18 +93,20 @@ class Application(object):
         if not packets:
             packets = self.sim_packets
         for packet in packets:
+            print ("{} - {}".format(packet.src_addr, packet.dst_addr))
             src_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.src_addr][0]
             dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dst_addr][0]
             src_node_out_chain = self.current_nodes[src_node_id]["firewall"].chains["OUTPUT"]
             dst_node_in_chain = self.current_nodes[dst_node_id]["firewall"].chains["INPUT"]
             # Check output
             logger.info("Checking Server node")
+            str_protocol = ip.reverse_lookup_protocol(packet.protocol)
             out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0)
             packet_result = {
                 "Packet_ID"         "-1"
                 "Source_IP":        packet.src_addr,
                 "Destination_IP":   packet.dst_addr,
-                "Protocol":         ip.reverse_lookup_protocol(packet.Protocol),
+                "Protocol":         str_protocol,
                 "Result":           out_res,
             }
             self.sim_results["node_results"].append({
@@ -112,7 +114,7 @@ class Application(object):
                 'Hop_Number':   '1',
                 'Node_IP':      packet.src_addr, 
                 'Direction':    'Output', 
-                'Protocol':     ip.reverse_lookup_protocol(packet.Protocol), 
+                'Protocol':     str_protocol, 
                 'Result':       out_res
             })
             
@@ -127,7 +129,7 @@ class Application(object):
                     'Hop_Number':   '2',
                     'Node_IP':      packet.dst_addr, 
                     'Direction':    'Input', 
-                    'Protocol':     ip.reverse_lookup_protocol(packet.Protocol), 
+                    'Protocol':     str_protocol, 
                     'Result':       in_res
                 })
                 packet_result["Result"] = in_res
@@ -168,7 +170,7 @@ class Application(object):
         """
         # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
         rule_result = {"Packet_ID": "-1", "Chain": chain, "Node_IP": self.current_nodes[node]["ip"], 
-                       "Protocol": ip.reverse_lookup_protocol(packet.Protocol)}
+                       "Protocol": ip.reverse_lookup_protocol(packet.protocol)}
         if recursive_count>500:
             logger.warning("Recursion loop detected - dropping")
             return "DROP"       # Prevent looped chains breaking the system
@@ -185,7 +187,7 @@ class Application(object):
                     tmp_res = deepcopy(rule_result)
                     tmp_res["Rule"] = json.dumps(ip_rule.__dict__)
                     tmp_res["Result"] = "DROP"
-                    self.sim_packets["rule_results"].append(tmp_res)
+                    self.sim_results["rule_results"].append(tmp_res)
                     return rule.match
                 else:
                     try:
@@ -193,14 +195,14 @@ class Application(object):
                         tmp_res = deepcopy(rule_result)
                         tmp_res["Rule"] = json.dumps(ip_rule.__dict__)
                         tmp_res["Result"] = next_chain
-                        self.sim_packets["rule_results"].append(tmp_res)
+                        self.sim_results["rule_results"].append(tmp_res)
                         return self._traverse_chain(node, next_chain, packet, recursive_count+1)
                     except KeyError:
                         logger.warning("Chain {} can't be found".format(rule.match))
                         tmp_res = deepcopy(rule_result)
                         tmp_res["Rule"] = "Chain not found"
                         tmp_res["Result"] = "DROP"
-                        self.sim_packets["rule_results"].append(tmp_res)
+                        self.sim_results["rule_results"].append(tmp_res)
                         return "DROP"
             else:
                 continue
@@ -209,7 +211,7 @@ class Application(object):
         tmp_res = deepcopy(rule_result)
         tmp_res["Rule"] = "Default chain policy"
         tmp_res["Result"] = "DROP"
-        self.sim_packets["rule_results"].append(tmp_res)
+        self.sim_results["rule_results"].append(tmp_res)
         return "DROP"
 
 
