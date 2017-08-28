@@ -103,7 +103,7 @@ class Application(object):
             str_protocol = ip.reverse_lookup_protocol(packet.protocol)
             out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0)
             packet_result = {
-                "Packet_ID"         "-1"
+                "Packet_ID":        "-1",
                 "Source_IP":        packet.src_addr,
                 "Destination_IP":   packet.dst_addr,
                 "Protocol":         str_protocol,

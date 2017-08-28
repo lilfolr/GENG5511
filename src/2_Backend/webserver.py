@@ -253,28 +253,32 @@ async def upload_simulation_file(sid, data):
         return ["E", "Error uploading simulation - "+str(e)]
 
 @sio.on('get-sim-results', namespace='')
-async def get_sim_results(sid):
+async def get_sim_results(sid,data):
     try:
+        print("AA")
         check_user(sid)
         to_return = {"packet":"","node":"","rule":""}
         # Packet
         file_data = StringIO() 
-        writer = csv.writer(file_data, ['Packet_ID', 'Source_IP', 'Destination_IP', 'Protocol', 'Result'])
+        writer = csv.DictWriter(file_data, ['Packet_ID', 'Source_IP', 'Destination_IP', 'Protocol', 'Result'])
         writer.writeheader()
-        writer.writerows(active_users[sid].sim_results['packet'])
+        writer.writerows(active_users[sid].sim_results['packet_results'])
+        print("here")
         to_return["packet"] = file_data.getvalue()
         # Node
         file_data = StringIO() 
-        writer = csv.writer(file_data, ['Packet_ID', 'Hop_Number', 'Node_IP', 'Direction', 'Protocol', 'Result' ])
+        writer = csv.DictWriter(file_data, ['Packet_ID', 'Hop_Number', 'Node_IP', 'Direction', 'Protocol', 'Result' ])
         writer.writeheader()
-        writer.writerows(active_users[sid].sim_results["node"])
+        writer.writerows(active_users[sid].sim_results["node_results"])
+        print("here2")
         to_return["node"] = file_data.getvalue()
         # Rule
         file_data = StringIO() 
-        writer = csv.writer(file_data, ['Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'])
+        writer = csv.DictWriter(file_data, ['Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'])
         writer.writeheader()
-        writer.writerows(active_users[sid].sim_results["rule"])
+        writer.writerows(active_users[sid].sim_results["rule_results"])
         to_return["rule"] = file_data.getvalue()
+        print("to_return - {}".format(to_return))
         return ["S","", to_return]
     except Exception as e:
         return ["E", "Error uploading simulation - "+str(e)]
