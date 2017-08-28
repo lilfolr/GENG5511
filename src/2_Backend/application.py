@@ -97,22 +97,21 @@ class Application(object):
             dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dst_addr][0]
             src_node_out_chain = self.current_nodes[src_node_id]["firewall"].chains["OUTPUT"]
             dst_node_in_chain = self.current_nodes[dst_node_id]["firewall"].chains["INPUT"]
+            # Check output
+            logger.info("Checking Server node")
+            out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0)
             packet_result = {
                 "Packet_ID"         "-1"
                 "Source_IP":        packet.src_addr,
                 "Destination_IP":   packet.dst_addr,
                 "Protocol":         ip.reverse_lookup_protocol(packet.Protocol),
-                "Result":           "",
+                "Result":           out_res,
             }
-            # Check output
-            logger.info("Checking Server node")
-            out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0)
-            node_result = deepcopy(packet_result)
             self.sim_results["node_results"].append({
                 'Packet_ID':    '-1',
                 'Hop_Number':   '1',
                 'Node_IP':      packet.src_addr, 
-                'Direction':    'Output, 
+                'Direction':    'Output', 
                 'Protocol':     ip.reverse_lookup_protocol(packet.Protocol), 
                 'Result':       out_res
             })
@@ -127,14 +126,13 @@ class Application(object):
                     'Packet_ID':    '-1',
                     'Hop_Number':   '2',
                     'Node_IP':      packet.dst_addr, 
-                    'Direction':    'Input, 
+                    'Direction':    'Input', 
                     'Protocol':     ip.reverse_lookup_protocol(packet.Protocol), 
                     'Result':       in_res
                 })
                 packet_result["Result"] = in_res
             else:
                 in_res = "None"
-                packet_result["Result"] = out_res
             self.sim_results["packet_results"].append(packet_result)
             yield (
                 (src_node_id, (int(out_res=="ACCEPT"), int(out_res=="DROP"), int(out_res=="REJECT"))),
@@ -169,7 +167,7 @@ class Application(object):
         Returns "DROP"; "ACCEPT"; or "REJECT"
         """
         # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
-        rule_result = {"Packet_ID": "-1", "Chain": chain, "Node_ID": self.current_nodes[node]["ip"], 
+        rule_result = {"Packet_ID": "-1", "Chain": chain, "Node_IP": self.current_nodes[node]["ip"], 
                        "Protocol": ip.reverse_lookup_protocol(packet.Protocol)}
         if recursive_count>500:
             logger.warning("Recursion loop detected - dropping")
