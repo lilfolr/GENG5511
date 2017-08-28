@@ -295,17 +295,10 @@ app = new Vue({
                       });
                 }else{
                     websocket_run('get-sim-results', "", (result)=>{
-                        var pom = document.createElement('a');
-                        pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result));
-                        pom.setAttribute('download', "Simulation_Results.csv");
-                        if (document.createEvent) {
-                            var event = document.createEvent('MouseEvents');
-                            event.initEvent('click', true, true);
-                            pom.dispatchEvent(event);
-                        }
-                        else {
-                            pom.click();
-                        }
+                        app.$data['simulation']["results_rule"]=result.rule;
+                        app.$data['simulation']["results_node"]=result.node;
+                        app.$data['simulation']["results_packet"]=result.packet;
+                        app.$data['form_visible']["downloadResults"] = true
                     });
                 }
             }
@@ -488,7 +481,7 @@ app = new Vue({
             }else{
                 var pom = document.createElement('a');
                 pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
-                pom.setAttribute('download', "Packet_Template.csv");
+                pom.setAttribute('download', "Packets_Results.csv");
             
                 if (document.createEvent) {
                     var event = document.createEvent('MouseEvents');
@@ -511,7 +504,7 @@ app = new Vue({
             }else{
                 var pom = document.createElement('a');
                 pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
-                pom.setAttribute('download', "Packet_Template.csv");
+                pom.setAttribute('download', "Node_Results.csv");
             
                 if (document.createEvent) {
                     var event = document.createEvent('MouseEvents');
@@ -534,7 +527,7 @@ app = new Vue({
             }else{
                 var pom = document.createElement('a');
                 pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
-                pom.setAttribute('download', "Packet_Template.csv");
+                pom.setAttribute('download', "Rule_Results.csv");
             
                 if (document.createEvent) {
                     var event = document.createEvent('MouseEvents');
