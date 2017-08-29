@@ -182,10 +182,11 @@ class Application(object):
             ip_rule.dst_addr = rule.dst if rule.dst else ""  # TODO: 'ANY' is probably a mask
             ip_rule.indev = rule.input_device if rule.input_device else ""
             ip_rule.outdev = rule.output_device if rule.output_device else ""
+            ip_rule_str = "P:{} S:{} D:{} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.indev, ip_rule.outdev)
             if ip.check_rule_packet(ip_rule, packet):
                 if rule.match in ip.BASE_RULES:
                     tmp_res = deepcopy(rule_result)
-                    tmp_res["Rule"] = json.dumps(ip_rule.__dict__)
+                    tmp_res["Rule"] = ip_rule_str
                     tmp_res["Result"] = "DROP"
                     self.sim_results["rule_results"].append(tmp_res)
                     return rule.match
@@ -193,7 +194,7 @@ class Application(object):
                     try:
                         next_chain = self.current_nodes[node]["firewall"].chains[rule.match]
                         tmp_res = deepcopy(rule_result)
-                        tmp_res["Rule"] = json.dumps(ip_rule.__dict__)
+                        tmp_res["Rule"] = ip_rule_str
                         tmp_res["Result"] = next_chain
                         self.sim_results["rule_results"].append(tmp_res)
                         return self._traverse_chain(node, next_chain, packet, recursive_count+1)
