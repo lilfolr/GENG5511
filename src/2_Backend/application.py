@@ -101,7 +101,7 @@ class Application(object):
             # Check output
             logger.info("Checking Server node")
             str_protocol = ip.reverse_lookup_protocol(packet.protocol)
-            out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0)
+            out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0, "OUTPUT")
             packet_result = {
                 "Packet_ID":        "-1",
                 "Source_IP":        packet.src_addr,
@@ -123,7 +123,7 @@ class Application(object):
             # check input
             if out_res == "ACCEPT":
                 logger.info("Checking Client node")
-                in_res = self._traverse_chain(dst_node_id, dst_node_in_chain, packet, 0)
+                in_res = self._traverse_chain(dst_node_id, dst_node_in_chain, packet, 0, "INPUT")
                 self.sim_results["node_results"].append({
                     'Packet_ID':    '-1',
                     'Hop_Number':   '2',
@@ -164,12 +164,12 @@ class Application(object):
             return False
         return True
 
-    def _traverse_chain(self, node, chain, packet, recursive_count):
+    def _traverse_chain(self, node, chain, packet, recursive_count, chain_name=""):
         """
         Returns "DROP"; "ACCEPT"; or "REJECT"
         """
         # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
-        rule_result = {"Packet_ID": "-1", "Chain": chain, "Node_IP": self.current_nodes[node]["ip"], 
+        rule_result = {"Packet_ID": "-1", "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
                        "Protocol": ip.reverse_lookup_protocol(packet.protocol)}
         if recursive_count>500:
             logger.warning("Recursion loop detected - dropping")
@@ -197,7 +197,7 @@ class Application(object):
                         tmp_res["Rule"] = ip_rule_str
                         tmp_res["Result"] = next_chain
                         self.sim_results["rule_results"].append(tmp_res)
-                        return self._traverse_chain(node, next_chain, packet, recursive_count+1)
+                        return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match)
                     except KeyError:
                         logger.warning("Chain {} can't be found".format(rule.match))
                         tmp_res = deepcopy(rule_result)
