@@ -24,6 +24,8 @@ save_results () : json results
 
 import logging
 import socketio
+import csv
+from io import StringIO
 from aiohttp import web
 from application import *
 
@@ -66,7 +68,7 @@ async def create_node(sid, data):
     except Exception as e:
         return ["E", "Error creating node - "+str(e)]
     else:
-        return ["S","Node Created"]
+        return ["S", "Node Created"]
 
 @sio.on('delete-node', namespace='')
 async def delete_node(sid, data):
@@ -78,7 +80,7 @@ async def delete_node(sid, data):
     except Exception as e:
         return ["E", "Error deleting node - "+str(e)]
     else:
-        return ["S","Node deleted "]
+        return ["S", "Node deleted "]
 
 @sio.on('add-edge', namespace='')
 async def connect_nodes(sid, data):
@@ -88,14 +90,14 @@ async def connect_nodes(sid, data):
     except Exception as e:
         return ["E", "Error connecting nodes - "+str(e)]
     else:
-        return ["S","Nodes connected "]
+        return ["S", "Nodes connected "]
 
 @sio.on('update-status-table', namespace='')
 async def update_status_table_def(sid, data):
     await update_status_table(sid)
     print(data)
-    if data=="loud":
-        return ["S","Table update triggered"]
+    if data == "loud":
+        return ["S", "Table update triggered"]
     # Quite update
     return ["N"]
 
@@ -133,7 +135,7 @@ def delete_rule(sid, data):
     try:
         check_user(sid)
         node_id = data[0]
-        rules = data[1]  
+        rules = data[1]
         for r in rules:
             chain, rule = r
             logger.info("Deleting {} from {} - node {}".format(rule, chain, node_id))
@@ -156,7 +158,7 @@ async def update_status_table(sid):
 
 @sio.on('add-rule')
 def add_rule(sid, data):
-    import iptables_sim_interface as ip 
+    import iptables_sim_interface as ip
     try:
         msg = "Rule added"
         check_user(sid)
@@ -174,7 +176,7 @@ def add_rule(sid, data):
         logger.info("1")
         if not rule["chain"]:
             raise ValueError("Match chain must have a value")
-        logger.info("2")        
+        logger.info("2")
         if rule["chain"] not in firewall.chains.keys():
             firewall.create_chain(rule["chain"])
             logger.info("3")
@@ -206,7 +208,7 @@ async def run_simulation(sid, data):
                 }
         results_out = {q:[0,0, 0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
         results_in = {q:[0,0, 0] for q in active_users[sid].current_nodes.keys()}    # node: (total, blocked)
-        for packet_result in active_users[sid].simulate(sim_data):                # returns {packet_id: blocked?}
+        for packet_result in active_users[sid].simulate():                # returns {packet_id: blocked?}
             results_out[sim_data[packet_result[0][0]]['SN']][0] += packet_result[0][1][0]
             results_out[sim_data[packet_result[0][0]]['SN']][1] += packet_result[0][1][1]
             results_out[sim_data[packet_result[0][0]]['SN']][2] += packet_result[0][1][2]
@@ -228,6 +230,58 @@ async def run_simulation(sid, data):
     except Exception as e:
         raise
         return ["E", "Error running simulation - "+str(e)]
+
+@sio.on('download-sim-template', namespace='')
+async def download_sim_file(sid, data):
+    try:
+        check_user(sid)
+        str_template = active_users[sid].get_sim_template()
+        return ["S","", str_template]
+    except Exception as e:
+        return ["E", "Error generating tempalte - "+str(e)]
+
+@sio.on('upload-sim', namespace='')
+async def upload_simulation_file(sid, data):
+    try:
+        check_user(sid)
+        file_data = StringIO(data)  #WARNING: could contain malicious things
+        reader = csv.reader(file_data, delimiter=',')
+        active_users[sid].set_sim_packets(reader)
+        return ["S","Simulation file uploaded"]
+        
+    except Exception as e:
+        return ["E", "Error uploading simulation - "+str(e)]
+
+@sio.on('get-sim-results', namespace='')
+async def get_sim_results(sid,data):
+    try:
+        print("AA")
+        check_user(sid)
+        to_return = {"packet":"","node":"","rule":""}
+        # Packet
+        file_data = StringIO() 
+        writer = csv.DictWriter(file_data, ['Packet_ID', 'Source_IP', 'Destination_IP', 'Protocol', 'Result'])
+        writer.writeheader()
+        writer.writerows(active_users[sid].sim_results['packet_results'])
+        print("here")
+        to_return["packet"] = file_data.getvalue()
+        # Node
+        file_data = StringIO() 
+        writer = csv.DictWriter(file_data, ['Packet_ID', 'Hop_Number', 'Node_IP', 'Direction', 'Protocol', 'Result' ])
+        writer.writeheader()
+        writer.writerows(active_users[sid].sim_results["node_results"])
+        print("here2")
+        to_return["node"] = file_data.getvalue()
+        # Rule
+        file_data = StringIO() 
+        writer = csv.DictWriter(file_data, ['Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'])
+        writer.writeheader()
+        writer.writerows(active_users[sid].sim_results["rule_results"])
+        to_return["rule"] = file_data.getvalue()
+        print("to_return - {}".format(to_return))
+        return ["S","", to_return]
+    except Exception as e:
+        return ["E", "Error uploading simulation - "+str(e)]
 
 def check_user(sid):
     if sid not in active_users:

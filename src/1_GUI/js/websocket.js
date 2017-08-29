@@ -12,9 +12,11 @@ socket.on('connect', function () {
 });
 socket.on('disconnect', function () {
   app.$message({
-    message: 'Disconnected from Socket',
-    type: 'warning'
+    message: 'Disconnected from Socket - please refresh the page',
+    type: 'error',
+    duration: 0
   });
+  app.$data.loading=true;
 });
 socket.on('error', function(er){
   app.$notify({

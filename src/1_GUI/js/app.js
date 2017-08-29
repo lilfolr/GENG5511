@@ -15,6 +15,14 @@ app = new Vue({
     el: '#app',
     data: {
         connect_node_start: null,
+        simulation:{
+            packets_loaded: false,
+            simulation_run: false,
+            template_data: "",
+            results_packet: "",
+            results_node: "",
+            results_rule: ""
+        },
         selected_node: {
             color:"",
             id:-1,
@@ -118,6 +126,9 @@ app = new Vue({
         },
         loading:false,
         form_visible:{
+            fileUpload: false,
+            downloadFile: false,
+            downloadResults: false,
             packet: false,
             firewall: false
         },
@@ -209,17 +220,13 @@ app = new Vue({
             }
         },
         handleSelect: function(key, keyPath) {
-            if (key=="4"){
-                websocket_run('run-simulation', "", ()=>{});
-            }
-            else if (key=="3"){
-                websocket_run('update-status-table', "loud", ()=>{});
-            }
-            else if (key=="2-1"){
+            if (key=="2-1"){
+                // New Node
                 this.clear_selected_node();
                 this.open_side_bar();
             }
             else if (key=="2-2"){
+                // Delete node
                 var selectedNode = this.selected_node;
                 var id = selectedNode['id'];
                 if (id==-1){
@@ -237,7 +244,8 @@ app = new Vue({
                 }
                 this.clear_selected_node();
             }
-            else if (key=="2-3")
+            else if (key=="2-3"){
+                // Connect node - deprecated
                 if (network.getSelectedNodes().length == 1) {
                     this.connect_node_start = network.getSelectedNodes()[0];
                     this.$notify({
@@ -252,6 +260,48 @@ app = new Vue({
                       type: 'warning'
                   });
                 }
+            }
+            else if (key=="3-1"){
+                //Download template
+                websocket_run('download-sim-template', "", (d)=>{
+                    app.$data['simulation']['template_data'] = d;
+                    app.$data['form_visible']['downloadFile']=true;
+                });
+            }
+            else if (key=="3-2"){
+                // Upload sim file
+                app.$data['form_visible']['fileUpload']=true;
+            }
+            else if (key=="3-3"){
+                // Run simulation
+                if (!app.$data['simulation']["packets_loaded"]){
+                    app.$message({
+                        message: 'Upload simulation file before attempting to run simulation',
+                        type: 'error'
+                      });
+                }else{
+                    websocket_run('run-simulation', "", ()=>{
+                        app.$data['simulation']["packets_loaded"] = true;
+                        app.$data['simulation']["simulation_run"] = true;
+                    });
+                }
+            }
+            else if (key=="3-4"){
+                // Download results
+                if (!app.$data['simulation']["simulation_run"]){
+                    app.$message({
+                        message: 'Run simulation before attempting to download results',
+                        type: 'error'
+                      });
+                }else{
+                    websocket_run('get-sim-results', "", (result)=>{
+                        app.$data['simulation']["results_rule"]=result.rule;
+                        app.$data['simulation']["results_node"]=result.node;
+                        app.$data['simulation']["results_packet"]=result.packet;
+                        app.$data['form_visible']["downloadResults"] = true
+                    });
+                }
+            }
             },
             load_packet_dialog: function(){
                 var node_id = this.selected_node.id;
@@ -380,6 +430,113 @@ app = new Vue({
                 websocket_run("add-rule", [node_id, app.$refs.tree.getCheckedNodes().filter((e)=>{return typeof e.children !=="undefined"})[0].id, rule_data], ()=>{
                 app.load_firewall_dialog();
                 });
+            }
+        },
+        submitUpload() {
+            this.$refs.upload.submit();
+        },
+        beforeUploadEvent: function(file){
+            var reader = new FileReader();
+            reader.onload = (e)=>{
+                websocket_run('upload-sim', e.target.result, function() {
+                    app.$data['simulation']["packets_loaded"] = true;
+                    app.$data['simulation']["simulation_run"] = false;
+                    app.$data['form_visible']['fileUpload'] = false;
+                }); 
+            };
+            reader.readAsText(file);
+            return false;
+        },
+        download_template: function(){
+            template_data = app.$data['simulation']['template_data'];
+            if (template_data===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No template data found. Please try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(template_data));
+                pom.setAttribute('download', "Packet_Template.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
+            }
+        },
+        download_results_packet: function(){
+            results = app.$data['simulation']['results_packet'];
+            if (results===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No results data found. Please run the simulation try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
+                pom.setAttribute('download', "Packets_Results.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
+            }
+        },
+        download_results_node: function(){
+            results = app.$data['simulation']['results_node'];
+            if (results===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No results data found. Please run the simulation try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
+                pom.setAttribute('download', "Node_Results.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
+            }
+        },
+        download_results_rule: function(){
+            results = app.$data['simulation']['results_rule'];
+            if (results===""){
+                this.$notify({
+                    title: 'Warning',
+                    message: 'No results data found. Please run the simulation try again',
+                    type: 'warning'
+                });
+            }else{
+                var pom = document.createElement('a');
+                pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(results));
+                pom.setAttribute('download', "Rule_Results.csv");
+            
+                if (document.createEvent) {
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    pom.dispatchEvent(event);
+                }
+                else {
+                    pom.click();
+                }
             }
         }
     },
