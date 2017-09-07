@@ -18,6 +18,8 @@
 #include <linux/icmp.h>
 #include "ip_tables.h"
 #include <stdio.h>
+#include <netinet/in.h>
+#include <string.h>
 
 static inline unsigned long ifname_compare_aligned(const char *_a,
 						   const char *_b,
@@ -51,6 +53,7 @@ ip_packet_match(const struct iphdr *ip,
 	unsigned long ret;
 	if (debug)
 		printf("> 1 Checking src & dst matches rule\n");
+                printf("> 1 > %d %d\n", ntohl(ip->saddr), ntohl(ipinfo->src.s_addr));
 	if (NF_INVF(ipinfo, IPT_INV_SRCIP,
 		    (ip->saddr & ipinfo->smsk.s_addr) != ipinfo->src.s_addr) ||
 	    NF_INVF(ipinfo, IPT_INV_DSTIP,
@@ -62,7 +65,7 @@ ip_packet_match(const struct iphdr *ip,
 	}
 	ret = ifname_compare_aligned(indev, ipinfo->iniface, ipinfo->iniface_mask);
 
-	if (NF_INVF(ipinfo, IPT_INV_VIA_IN, ret != 0))
+	if (strcmp(indev,ipinfo->iniface))
 		return false;
 	if (debug){
 		printf("> 2 Passed\n");
@@ -70,7 +73,7 @@ ip_packet_match(const struct iphdr *ip,
 	}
 	ret = ifname_compare_aligned(outdev, ipinfo->outiface, ipinfo->outiface_mask);
 
-	if (NF_INVF(ipinfo, IPT_INV_VIA_OUT, ret != 0))
+	if (strcmp(outdev, ipinfo->outiface))
 		return false;
 	if (debug){
 		printf("> 3 Passed\n");

@@ -188,22 +188,22 @@ class Application(object):
             ip_rule_str = "P:{} S:{} D:{} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.indev, ip_rule.outdev)
             logger.debug("Checking Packet {} against Rule {}".format("S: "+packet.src_addr+" D:"+packet.dst_addr, ip_rule_str))
             if ip.check_rule_packet(ip_rule, packet):
-                if rule.match in ip.BASE_RULES:
+                if rule.match_chain in ip.BASE_RULES:
                     tmp_res = deepcopy(rule_result)
                     tmp_res["Rule"] = ip_rule_str
                     tmp_res["Result"] = "DROP"
                     self.sim_results["rule_results"].append(tmp_res)
-                    return rule.match
+                    return rule.match_chain
                 else:
                     try:
-                        next_chain = self.current_nodes[node]["firewall"].chains[rule.match]
+                        next_chain = self.current_nodes[node]["firewall"].chains[rule.match_chain]
                         tmp_res = deepcopy(rule_result)
                         tmp_res["Rule"] = ip_rule_str
                         tmp_res["Result"] = next_chain
                         self.sim_results["rule_results"].append(tmp_res)
-                        return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match)
+                        return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match_chain)
                     except KeyError:
-                        logger.warning("Chain {} can't be found".format(rule.match))
+                        logger.warning("Chain {} can't be found".format(rule.match_chain))
                         tmp_res = deepcopy(rule_result)
                         tmp_res["Rule"] = "Chain not found"
                         tmp_res["Result"] = "DROP"

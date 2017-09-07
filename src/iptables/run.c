@@ -81,16 +81,16 @@ int run_sim(in_packet *packet, in_rule *rule, int debug){
     ip->version     = 4;                                                        // Always 4 [IPv4 i think]
     ip->tot_len     = sizeof(struct iphdr) + sizeof(struct icmphdr);
     ip->protocol    = IPPROTO_ICMP;                                             // See 3.0 below
-    ip->saddr       = inet_addr(packet->src_addr);
-    ip->daddr       = inet_addr(packet->dst_addr);
+    ip->saddr       = inet_addr(rule->src_addr);
+    ip->daddr       = inet_addr(rule->dst_addr);
     ip->check = in_cksum((unsigned short *)ip, sizeof(struct iphdr)); 
     ip->ttl = packet->ttl;                                                      // Time to live
     
     //The rule
     char* indev = "eth1";
     char* outdev = "eth1";
-    // const unsigned long mask[4] = {1,1,1,1};
-    // const char *_mask =  (const char *) mask;
+    const unsigned long mask[4] = {0x00000000ffffffff,0x00000000ffffffff,0x00000000ffffffff,0x00000000ffffffff};
+    const char *_mask =  (const char *) mask;
     
     struct ipt_ip *ipinfo;
     ipinfo = (struct ipt_ip*) malloc(sizeof(struct ipt_ip));
@@ -102,10 +102,10 @@ int run_sim(in_packet *packet, in_rule *rule, int debug){
     ipinfo->invflags = IPT_INV_VIA_IN | IPT_INV_VIA_OUT; //Don't care about interface matching or fragments for now
     ipinfo->smsk    = get_in_addr(inet_addr("255.255.255.255"));
     ipinfo->dmsk    = get_in_addr(inet_addr("255.255.255.255"));
-    // strcpy(ipinfo->iniface, "eth2");
-    // strcpy(ipinfo->outiface,"eth2");
-    // strcpy(ipinfo->iniface_mask,_mask);
-    // strcpy(ipinfo->outiface_mask,_mask);
+    strcpy(ipinfo->iniface, "eth1");
+    strcpy(ipinfo->outiface,"eth1");
+    strcpy(ipinfo->iniface_mask,_mask);
+    strcpy(ipinfo->outiface_mask,_mask);
 
 
     packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, 0, debug);
