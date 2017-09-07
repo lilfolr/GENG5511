@@ -11,6 +11,7 @@
 #include <linux/ip.h>
 #include <linux/icmp.h>
 #include "ip_tables.c"
+#include <netinet/in.h>
 
 static struct in_addr get_in_addr(__be32 addr){
     struct in_addr ret;
@@ -52,7 +53,9 @@ typedef struct in_packets{
     int ttl;
 	int protocol;
 	char* dst_addr;
-	char* src_addr;
+    char* src_addr;
+    char* indev;
+	char* outdev;
 } in_packet;
 
 // Input struct for defining our rule
@@ -70,7 +73,7 @@ int run_sim(in_packet *packet, in_rule *rule, int debug){
         printf("Starting\n");
     bool packet_pass;
 
-    //The Packet
+    //PACKET
     struct iphdr *ip;
     char *dst_addr=packet->dst_addr;
     char *src_addr=packet->src_addr;
@@ -81,32 +84,42 @@ int run_sim(in_packet *packet, in_rule *rule, int debug){
     ip->version     = 4;                                                        // Always 4 [IPv4 i think]
     ip->tot_len     = sizeof(struct iphdr) + sizeof(struct icmphdr);
     ip->protocol    = IPPROTO_ICMP;                                             // See 3.0 below
-    ip->saddr       = inet_addr(rule->src_addr);
-    ip->daddr       = inet_addr(rule->dst_addr);
+    ip->saddr       = inet_addr(src_addr);
+    ip->daddr       = inet_addr(dst_addr);
     ip->check = in_cksum((unsigned short *)ip, sizeof(struct iphdr)); 
     ip->ttl = packet->ttl;                                                      // Time to live
     
-    //The rule
-    char* indev = "eth1";
-    char* outdev = "eth1";
-    const unsigned long mask[4] = {0x00000000ffffffff,0x00000000ffffffff,0x00000000ffffffff,0x00000000ffffffff};
-    const char *_mask =  (const char *) mask;
+    char* indev = packet->indev;
+    char* outdev = packet->outdev;
+    
+    //RULE
+    // const unsigned long mask[4] = {0x00000000ffffffff,0x00000000ffffffff,0x00000000ffffffff,0x00000000ffffffff};
+    // const char *_mask =  (const char *) mask;
     
     struct ipt_ip *ipinfo;
     ipinfo = (struct ipt_ip*) malloc(sizeof(struct ipt_ip));
     ipinfo->proto   = 0;  //Protocol. 0=Any
-    ipinfo->src     = get_in_addr(inet_addr(src_addr));
-    ipinfo->dst     = get_in_addr(inet_addr(dst_addr));
+    ipinfo->src     = get_in_addr(inet_addr(rule->src_addr));
+    ipinfo->dst     = get_in_addr(inet_addr(rule->dst_addr));
     //SEE REF_FLAGS Below
     ipinfo->flags   = 0x00; //Not frag
     ipinfo->invflags = IPT_INV_VIA_IN | IPT_INV_VIA_OUT; //Don't care about interface matching or fragments for now
     ipinfo->smsk    = get_in_addr(inet_addr("255.255.255.255"));
     ipinfo->dmsk    = get_in_addr(inet_addr("255.255.255.255"));
-    strcpy(ipinfo->iniface, "eth1");
-    strcpy(ipinfo->outiface,"eth1");
-    strcpy(ipinfo->iniface_mask,_mask);
-    strcpy(ipinfo->outiface_mask,_mask);
+    strcpy(ipinfo->iniface, indev);
+    strcpy(ipinfo->outiface,outdev);
+    // strcpy(ipinfo->iniface_mask,_mask);
+    // strcpy(ipinfo->outiface_mask,_mask);
 
+    // Implement 'any' mask
+    if (ntohl(rule->saddr)==-1)
+        ip->saddr = inet_addr(src_addr);
+    if (ntohl(rule->daddr)==-1)
+        ip->daddr = inet_addr(dst_addr);
+    if (strcmp(ipinfo->iniface, "")==0)
+        strcpy(ipinfo->iniface, indev);
+    if (strcmp(ipinfo->outiface, "")==0)
+        strcpy(ipinfo->outiface, indev);
 
     packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, 0, debug);
     //printf("Result: ");

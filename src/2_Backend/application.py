@@ -63,10 +63,11 @@ class Application(object):
         output = io.StringIO()
         csvWriter = csv.writer(output)
         csvWriter.writerow(['packet_id', 'network_layer', 'application_layer', 'source_port', 
-                            'destination_port', 'source_ip', 'destination_ip', 'ttl'])
+                            'destination_port', 'source_ip', 'destination_ip', 'input_device', 
+                            'output_device', 'ttl'])
         i=1
         for node in self.current_nodes:
-            csvWriter.writerow([str(i), 'icmp', '', '', '', self.current_nodes[node]['ip'], '', '2'])
+            csvWriter.writerow([str(i), 'icmp', '', '', '', self.current_nodes[node]['ip'], '', 'eth1','eth1', '2'])
             i += 1
         str_out = output.getvalue()
         output.close()
@@ -151,10 +152,12 @@ class Application(object):
                 raise Exception("Row {} is invalid".format(str(row_n+1)))
             print (row)     
             packet = in_packet()
-            packet.ttl      = int(row[7])
+            packet.ttl      = int(row[9])
             packet.protocol = ip.lookup_protocol(row[1])
             packet.src_addr = row[5]
             packet.dst_addr = row[6]
+            packet.indev = row[7]
+            packet.outdev = row[8]
             self.sim_packets.append(packet)
     def _valid_sim_packet_row(self,row):
         if len(row)!=8:

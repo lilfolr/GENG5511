@@ -19,8 +19,8 @@ class ApplicationTest(unittest.TestCase):
         node_id = 1
         firewall = self.a.get_node_firewall(node_id)
         ip_rule = ip.Rule()
-        ip_rule.input_device = None
-        ip_rule.output_device = None
+        ip_rule.input_device = "eth1"
+        ip_rule.output_device = "eth1"
         ip_rule.protocol = "ICMP"
         ip_rule.src =  self.a.current_nodes[1]["ip"]
         ip_rule.dst =  self.a.current_nodes[1]["ip"]
@@ -34,11 +34,11 @@ class ApplicationTest(unittest.TestCase):
         packet.protocol = ip.lookup_protocol("icmp")
         packet.src_addr = self.a.current_nodes[1]["ip"]
         packet.dst_addr = self.a.current_nodes[1]["ip"]
+        packet.indev = "eth1"
+        packet.outdev = "eth1"
         self.a.sim_packets.append(packet)
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr)
     logging.getLogger( "simulator.test").setLevel( logging.DEBUG )
     unittest.main()
-
-

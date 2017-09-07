@@ -53,7 +53,6 @@ ip_packet_match(const struct iphdr *ip,
 	unsigned long ret;
 	if (debug)
 		printf("> 1 Checking src & dst matches rule\n");
-                printf("> 1 > %d %d\n", ntohl(ip->saddr), ntohl(ipinfo->src.s_addr));
 	if (NF_INVF(ipinfo, IPT_INV_SRCIP,
 		    (ip->saddr & ipinfo->smsk.s_addr) != ipinfo->src.s_addr) ||
 	    NF_INVF(ipinfo, IPT_INV_DSTIP,
