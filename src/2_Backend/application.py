@@ -17,7 +17,7 @@ else:
 import iptables_sim_interface as ip
 from iptables_sim import in_packet, in_rule
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class Application(object):
     def __init__(self):
@@ -90,10 +90,12 @@ class Application(object):
                 (dst: (A, B, R))
             )
         """
+        logger.debug("Starting Simulation")
         if not packets:
             packets = self.sim_packets
+        logger.debug("Packets: "+str(packets))
         for packet in packets:
-            print ("{} - {}".format(packet.src_addr, packet.dst_addr))
+            logger.info("{} -> {}".format(packet.src_addr, packet.dst_addr))
             src_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.src_addr][0]
             dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dst_addr][0]
             src_node_out_chain = self.current_nodes[src_node_id]["firewall"].chains["OUTPUT"]
