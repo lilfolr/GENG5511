@@ -19,7 +19,7 @@ class ApplicationTest(unittest.TestCase):
         node_id = 1
         firewall = self.a.get_node_firewall(node_id)
         ip_rule = ip.Rule()
-        ip_rule.input_device = "eth1"
+        ip_rule.input_device = "eth2"
         ip_rule.output_device = "eth1"
         ip_rule.protocol = "ICMP"
         ip_rule.src =  self.a.current_nodes[1]["ip"]

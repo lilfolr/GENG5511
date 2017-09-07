@@ -106,20 +106,21 @@ int run_sim(in_packet *packet, in_rule *rule, int debug){
     ipinfo->invflags = IPT_INV_VIA_IN | IPT_INV_VIA_OUT; //Don't care about interface matching or fragments for now
     ipinfo->smsk    = get_in_addr(inet_addr("255.255.255.255"));
     ipinfo->dmsk    = get_in_addr(inet_addr("255.255.255.255"));
-    strcpy(ipinfo->iniface, indev);
-    strcpy(ipinfo->outiface,outdev);
+    strcpy(ipinfo->iniface, rule->indev);
+    strcpy(ipinfo->outiface,rule->outdev);
     // strcpy(ipinfo->iniface_mask,_mask);
     // strcpy(ipinfo->outiface_mask,_mask);
 
     // Implement 'any' mask
-    if (ntohl(rule->saddr)==-1)
-        ip->saddr = inet_addr(src_addr);
-    if (ntohl(rule->daddr)==-1)
-        ip->daddr = inet_addr(dst_addr);
-    if (strcmp(ipinfo->iniface, "")==0)
+    printf("RULE: %s", rule->src_addr);
+    if (strcmp(rule->src_addr,"")==0)
+        ipinfo->src = get_in_addr(inet_addr(src_addr));
+    if (strcmp(rule->dst_addr,"")==0)
+        ipinfo->dst = get_in_addr(inet_addr(dst_addr));
+    if (strcmp(rule->indev, "")==0)
         strcpy(ipinfo->iniface, indev);
-    if (strcmp(ipinfo->outiface, "")==0)
-        strcpy(ipinfo->outiface, indev);
+    if (strcmp(rule->outdev, "")==0)
+        strcpy(ipinfo->outiface, outdev);
 
     packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, 0, debug);
     //printf("Result: ");
