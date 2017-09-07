@@ -22,10 +22,10 @@ class ApplicationTest(unittest.TestCase):
         ip_rule.input_device = None
         ip_rule.output_device = None
         ip_rule.protocol = "ICMP"
-        ip_rule.src =  None
-        ip_rule.dst =  None
+        ip_rule.src =  self.a.current_nodes[1]["ip"]
+        ip_rule.dst =  self.a.current_nodes[1]["ip"]
         ip_rule.match_chain = "ACCEPT"
-        firewall.add_chain_rule("INPUT", ip_rule, 0)
+        firewall.add_chain_rule("OUTPUT", ip_rule, 0)
         return
 
     def _set_packet(self):

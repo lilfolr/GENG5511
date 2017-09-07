@@ -72,8 +72,8 @@ int run_sim(in_packet *packet, in_rule *rule, int debug){
 
     //The Packet
     struct iphdr *ip;
-    char *dst_addr="192.168.1.2";
-    char *src_addr="192.168.1.3";
+    char *dst_addr=packet->dst_addr;
+    char *src_addr=packet->src_addr;
 
     // This is just for icmp - the simplest of packets :)
     ip = (struct iphdr*) malloc(sizeof(struct iphdr) + sizeof(struct icmphdr)); 

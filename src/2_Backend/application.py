@@ -170,6 +170,7 @@ class Application(object):
         """
         Returns "DROP"; "ACCEPT"; or "REJECT"
         """
+        logger.info("Running for chain "+chain_name)
         # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
         rule_result = {"Packet_ID": "-1", "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
                        "Protocol": ip.reverse_lookup_protocol(packet.protocol)}
@@ -185,6 +186,7 @@ class Application(object):
             ip_rule.indev = rule.input_device if rule.input_device else ""
             ip_rule.outdev = rule.output_device if rule.output_device else ""
             ip_rule_str = "P:{} S:{} D:{} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.indev, ip_rule.outdev)
+            logger.debug("Checking Packet {} against Rule {}".format("S: "+packet.src_addr+" D:"+packet.dst_addr, ip_rule_str))
             if ip.check_rule_packet(ip_rule, packet):
                 if rule.match in ip.BASE_RULES:
                     tmp_res = deepcopy(rule_result)
