@@ -1,24 +1,6 @@
 """
-METHODS:
-
-METHOD_NAME (PARAMS) : RETURNS
-
-conntect
-disconnect
-
-create_node (node_id, firewall_type) : success
-destroy_node (node_id) : success
-connect_node_to_node (node_id, node_id, port(s)) : success
-
-add_node_firewall_rule (node_id, firewall_rule) : rule_id
-remove_node_firewall_rule (node_id, firewall_rule_id) : success
-
-set_node_source_packets(node_id, source_type, frequency, purity [1-% corrupt packets]) : success
-
-run_simulation (seconds) : success [done]
-stop_simulation : success
-
-save_results () : json results
+| Responses will always be in the form of an array/list.  
+| The first element will be either **"S"** or **"E"** - dictating whether the function completed Successfully, or threw an Error.
 
 """
 
@@ -49,17 +31,42 @@ async def index(request):
 
 @sio.on('connect', namespace='')
 def connect(sid, environ):
+    """Used to connect to the socket
+    
+    Args:
+        sid (str):  Unique identifier for the socket connection
+
+    The *sid* is automatically assigned, and, assuming you're using a good library, should
+    be automatically sent with all future requests.
+    *sid* is an arg for all requests
+    """
     logger.info("{} connected ".format(sid))
     active_users[sid] = Application()
 
 @sio.on('disconnect', namespace='')
 def disconnect(sid):
+    """Used to gracefully disconnect from the client"""
     logger.info('{} disconnected '.format(sid))
     active_users.pop(sid)
 
 # ======================== NODES ========================
 @sio.on('create-node', namespace='')
 async def create_node(sid, data):
+    """Used to create a new node on the network
+
+    Args:
+        data (str): A string with a unique node id
+
+    Example Request:
+        | ``socket.emit('create-node', <node_id>)``
+        | ``socket.emit('create-node', 0)``
+
+    Returns: 
+        JSON Object: ``["S", "Node Created"]``
+
+    Raises:
+        ValueError: If node id is already taken
+    """
     logger.debug("Creating node.")
     try:
         check_user(sid)
@@ -72,6 +79,22 @@ async def create_node(sid, data):
 
 @sio.on('delete-node', namespace='')
 async def delete_node(sid, data):
+    """Used to delete an existing node on the network
+
+    Args:
+        data (str): A string with the node id
+
+    Example Request:
+        | ``socket.emit('delete-node', <node_id>)``
+        | ``socket.emit('delete-node', 0)``
+
+    Returns: 
+        JSON Object: ``["S", "Node deleted"]``
+
+    Raises:
+        KeyError: if node id does not exist
+
+    """
     logger.debug("Deleting node.")
     try:
         check_user(sid)
@@ -84,6 +107,7 @@ async def delete_node(sid, data):
 
 @sio.on('add-edge', namespace='')
 async def connect_nodes(sid, data):
+    """**DEPRECATED**"""
     try:
         check_user(sid)
         active_users[sid].connect_nodes(data[0], data[1])
@@ -94,6 +118,22 @@ async def connect_nodes(sid, data):
 
 @sio.on('update-status-table', namespace='')
 async def update_status_table_def(sid, data):
+    """Used to get the current nodes
+
+    Args:
+        data (str): Can be either ``""`` or ``"loud"``. ``"loud"`` will cause the response to be "Table update triggered".
+
+    Example Request:
+        | ``socket.emit('update-status-table', null)``
+        | ``socket.emit('update-status-table', "loud")``
+
+    Returns: 
+        JSON Object: ``["N"]`` or ``["S", "Table update triggered"]``
+    
+    | This function doesn't return anything, rather triggers a seperate update.
+    | It will trigger the webserver.update_status_table_ function.
+
+    """
     await update_status_table(sid)
     print(data)
     if data == "loud":
@@ -105,6 +145,90 @@ async def update_status_table_def(sid, data):
 
 @sio.on('get-firewall', namespace='')
 async def get_firewall(sid, node_id):
+    """Returns the current firewall for a given node id
+
+    Args:
+        node_id (str): A string with the node id
+
+    Example Request:
+        | ``socket.emit('delete-node', <node_id>)``
+        | ``socket.emit('get-firewall', 0)``
+
+    Returns: 
+        JSON Object: ``["S", "", <firewall_structure>]``
+        The firewall structure is a list of chains, each of which contains a list of rules [under the ``children`` key]
+
+    Example firewall_structure::
+    
+        {
+            [  
+                {  
+                    "id":"INPUT",
+                    "label":"INPUT",
+                    "children":[  
+                        {  
+                            "id":0,
+                            "label":"-i Any -o Any -p Any -s Any -d Any -j DROP"
+                        }
+                    ]
+                },
+                {  
+                    "id":"FORWARD",
+                    "label":"FORWARD",
+                    "children":[  
+                        {  
+                            "id":0,
+                            "label":"-i Any -o Any -p Any -s Any -d Any -j DROP"
+                        }
+                    ]
+                },
+                {  
+                    "id":"OUTPUT",
+                    "label":"OUTPUT",
+                    "children":[  
+                        {  
+                            "id":0,
+                            "label":"-i Any -o Any -p Any -s Any -d Any -j DROP"
+                        }
+                    ]
+                },
+                {  
+                    "id":"ACCEPT",
+                    "label":"ACCEPT",
+                    "children":[  
+                        {  
+                            "id":0,
+                            "label":"-i Any -o Any -p Any -s Any -d Any -j ACCEPT"
+                        }
+                    ]
+                },
+                {  
+                    "id":"REJECT",
+                    "label":"REJECT",
+                    "children":[  
+                        {  
+                            "id":0,
+                            "label":"-i Any -o Any -p Any -s Any -d Any -j REJECT"
+                        }
+                    ]
+                },
+                {  
+                    "id":"DROP",
+                    "label":"DROP",
+                    "children":[  
+                        {  
+                            "id":0,
+                            "label":"-i Any -o Any -p Any -s Any -d Any -j DROP"
+                        }
+                    ]
+                }
+            ]
+        }
+
+    Raises:
+        KeyError: if node id does not exist
+
+    """
     try:
         check_user(sid)
         to_return = []
@@ -132,6 +256,35 @@ async def get_firewall(sid, node_id):
 
 @sio.on('delete-rule')
 def delete_rule(sid, data):
+    """Delete a set of rules from a node's firewall
+    
+    Args: 
+        data (JSON)::
+
+            {
+                [node_id,
+                    [
+                        [chain1_id, rule1_id],
+                        [chain2_id, rule2_id],
+                        ...
+                    ]
+                ]
+            }
+
+    Example Request data::
+
+        {
+            [0,
+                [
+                    ["INPUT",0]
+                ]
+            ]
+        }
+
+    Returns:
+        JSON Object: ``["S", "Rules deleted"]``
+
+    """
     try:
         check_user(sid)
         node_id = data[0]
@@ -145,6 +298,38 @@ def delete_rule(sid, data):
         return ["E", "Error deleting rules - "+str(e)]
 
 async def update_status_table(sid):
+    """ Send a status update for all nodes
+
+
+    Returns:
+        List of nodes, with their properties
+
+    Example Response::
+
+        {
+            [
+                {
+                    "Node_ID":0,
+                    "Node_Addr":"10.62.0.0",
+                    "Node_Mac":"62:f4:e5:9c:00:00",
+                    "Packets_In":"",
+                    "Packets_Out":""
+                },
+                {
+                    "Node_ID":1,
+                    "Node_Addr":"10.51.0.1",
+                    "Node_Mac":"1e:68:26:a7:00:01",
+                    "Packets_In":"",
+                    "Packets_Out":""
+                }
+            ]
+        }
+    
+    Note:
+        | ``Packets_In`` and ``Packets_Out`` will be blank when running this function.
+        | The fields are populated after the simulation runs.
+    """
+
     toreturn = []
     for node_id, node_data in active_users[sid].current_nodes.items():
         toreturn.append({
@@ -158,6 +343,34 @@ async def update_status_table(sid):
 
 @sio.on('add-rule')
 def add_rule(sid, data):
+    """Adds rule to a node's firewall.
+
+    Args:
+        data (JSON): ``[node_id, chain_id, <rule_object>]``
+
+    Example Request::
+
+        {
+            [  
+                0,
+                "INPUT",
+                {  
+                    "chain":"New_Chain",
+                    "dst":false,
+                    "src":"",
+                    "input_device":"",
+                    "output_device":false,
+                    "protocol":false
+                }
+            ]
+        }
+
+    Returns: 
+        ``["S","Rule added."]`` or ``["S","Rule added. New chain New_Chain created"]``
+
+    | In the above, "INPUT" is the chain the rule is appended to, and "New_Chain" is the name of the chain the rule processor goes to if the rule matches the given packet.
+    | Note that "New_Chain" can be either a new chain, an existing chain, or a final status ["ACCEPT"; "DROP"; "REJECT"]
+    """
     import iptables_sim_interface as ip
     try:
         msg = "Rule added"
@@ -190,8 +403,72 @@ def add_rule(sid, data):
 
 # ======================== SIMULATION ========================
 
+@sio.on('download-sim-template', namespace='')
+async def download_sim_file(sid, data):
+    """ Used to download a simulation template, in csv format
+
+        Args:
+            data (str): Just leave empty
+
+        Returns:
+            Simulation template ``["S", "", <template>]``
+
+        Example Response template:
+            ``"packet_id,network_layer,application_layer,source_port,destination_port,source_ip,destination_ip,input_device,output_device,ttl \\r\\n 1,icmp,,,,10.47.0.0,,eth1,eth1,2 \\r\\n"``
+
+    """
+    try:
+        check_user(sid)
+        str_template = active_users[sid].get_sim_template()
+        return ["S","", str_template]
+    except Exception as e:
+        return ["E", "Error generating tempalte - "+str(e)]
+
+@sio.on('upload-sim', namespace='')
+async def upload_simulation_file(sid, data):
+    """Upload the packets to be simulated. This should be called before running the simulation.
+
+       Args:
+           data: (str): The simulation file [csv format]
+
+       Example Request data::
+          ``"packet_id,network_layer,application_layer,source_port,destination_port,source_ip,destination_ip,input_device,output_device,ttl\\r\\n1,icmp,,,,10.47.0.0,10.48.0.0,eth1,eth1,2"``
+        
+
+       Returns:
+           ``["S","Simulation file uploaded"]``
+
+       Raises:
+           If a row is invalid you will get an error stating which row failed
+
+       Note:
+           The first row is ignored [as it contains column titles]
+    """
+    try:
+        check_user(sid)
+        file_data = StringIO(data)  #WARNING: could contain malicious things
+        reader = csv.reader(file_data, delimiter=',')
+        active_users[sid].set_sim_packets(reader)
+        return ["S","Simulation file uploaded"]
+        
+    except Exception as e:
+        return ["E", "Error uploading simulation - "+str(e)]
+
 @sio.on('run-simulation', namespace='')
 async def run_simulation(sid, data):
+    """Runs the simulation on the created nodes with the uploaded packets.
+
+       Args:
+           data (str): Leave empty
+
+       Returns:
+           ``["S","Simulation Complete"]``
+
+
+       Note:
+           | Packets **must** have been set from the webserver.upload_simulation_file_ method.
+           | Results can be retrieved from the webserver.get_sim_results_ method
+    """
     try:
         check_user(sid)
         sim_file = "/home/leighton/Documents/GENG5511/src/2_Backend/example.csv"
@@ -231,29 +508,33 @@ async def run_simulation(sid, data):
         raise
         return ["E", "Error running simulation - "+str(e)]
 
-@sio.on('download-sim-template', namespace='')
-async def download_sim_file(sid, data):
-    try:
-        check_user(sid)
-        str_template = active_users[sid].get_sim_template()
-        return ["S","", str_template]
-    except Exception as e:
-        return ["E", "Error generating tempalte - "+str(e)]
-
-@sio.on('upload-sim', namespace='')
-async def upload_simulation_file(sid, data):
-    try:
-        check_user(sid)
-        file_data = StringIO(data)  #WARNING: could contain malicious things
-        reader = csv.reader(file_data, delimiter=',')
-        active_users[sid].set_sim_packets(reader)
-        return ["S","Simulation file uploaded"]
-        
-    except Exception as e:
-        return ["E", "Error uploading simulation - "+str(e)]
-
 @sio.on('get-sim-results', namespace='')
 async def get_sim_results(sid,data):
+    """Returns the simulation results after running.
+       Results are in 3 parts: packet results; node results and rule results
+
+       * Packet results: 1 row per packet, stating what happened to it [dropped; accepted...]
+       * Node results: 1 row per node per packet. States what happened to a packet at each node it reached
+       * Rule results: 1 row per rule per packet. States what happened to a packet at each rule in each node it hit
+          
+       Args:
+           data (str): Leave empty
+
+       Returns:
+           ``["S","", <results>]``
+
+
+       Example results::
+
+            {
+                "packet":"Packet_ID,Source_IP,Destination_IP,Protocol,Result\\r\\n-1,10.87.0.0,10.198.0.1,ICMP,DROP\\r\\n-1,10.198.0.1,10.87.0.0,ICMP,DROP\\r\\n",
+                "node":"Packet_ID,Hop_Number,Node_IP,Direction,Protocol,Result\\r\\n-1,1,10.87.0.0,Output,ICMP,DROP\\r\\n-1,1,10.198.0.1,Output,ICMP,DROP\\r\\n",
+                "rule":"Packet_ID,Node_IP,Chain,Protocol,Rule,Result\\r\\n-1,10.87.0.0,OUTPUT,ICMP,P:ICMP S: D: iD: oD:,DROP\\r\\n-1,10.198.0.1,OUTPUT,ICMP,P:ICMP S: D: iD: oD:,DROP\\r\\n"
+            }
+
+       Note:
+          This must only be called **after** running the simulation - see webserver.run_simulation_
+    """
     try:
         print("AA")
         check_user(sid)
