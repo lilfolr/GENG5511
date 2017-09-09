@@ -160,12 +160,15 @@ class Application(object):
             packet.outdev = row[8]
             self.sim_packets.append(packet)
     def _valid_sim_packet_row(self,row):
-        if len(row)!=8:
+        if len(row)!=10:
+            logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), 10))
             return False
         for r in row:
             if not isinstance(r, str):
+                logger.warn("Invalid row field. {} is not a string".format(str(r)))
                 return False
         if not ip.lookup_protocol(row[1]):
+            logger.warn("Invalid protocol {}".format(row[1]))
             return False
         return True
 
