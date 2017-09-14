@@ -3,6 +3,11 @@ CC=gcc
 CFLAGS=-c
 LIBS=-lcheck -lm -lpthread -lrt
 
+travis: run.o
+	swig -py3 -python interface.i
+	$(CC) $(CFLAGS) -fPIC -I/usr/include/python3.4 interface_wrap.c 
+	gcc -shared run.o interface_wrap.o -o _iptables_sim.so
+
 all: run.o
 	swig -py3 -python interface.i
 	$(CC) $(CFLAGS) -fPIC -I/usr/include/python3.5 interface_wrap.c 

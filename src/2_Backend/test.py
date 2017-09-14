@@ -36,7 +36,7 @@ class ApplicationTest(unittest.TestCase):
         packet.dst_addr = self.a.current_nodes[1]["ip"]
         packet.indev = "eth1"
         packet.outdev = "eth1"
-        self.a.sim_packets.append(packet)
+        self.a.sim_packets.append((0, packet))
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr)
