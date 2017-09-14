@@ -472,27 +472,18 @@ async def run_simulation(sid, data):
     try:
         check_user(sid)
         sim_file = "/home/leighton/Documents/GENG5511/src/2_Backend/example.csv"
-        sim_data={}
-        for x in range(20):
-            sim_data[x]={
-                    "NL": "ICMP",
-                    "AL": "",
-                    "SP": 22,
-                    "DP": 22, 
-                    "SN": 0,
-                    "DN": 1,
-                    "TTL": 33,
-                }
-        results_out = {q:[0,0, 0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
-        results_in = {q:[0,0, 0] for q in active_users[sid].current_nodes.keys()}    # node: (total, blocked)
-        for packet_result in active_users[sid].simulate():                # returns {packet_id: blocked?}
-            results_out[sim_data[packet_result[0][0]]['SN']][0] += packet_result[0][1][0]
-            results_out[sim_data[packet_result[0][0]]['SN']][1] += packet_result[0][1][1]
-            results_out[sim_data[packet_result[0][0]]['SN']][2] += packet_result[0][1][2]
-            results_in[sim_data[packet_result[1][0]]['DN']][0] += packet_result[1][1][0]
-            results_in[sim_data[packet_result[1][0]]['DN']][1] += packet_result[1][1][1]
-            results_in[sim_data[packet_result[1][0]]['DN']][2] += packet_result[1][1][2]
+
+        results_out = {q:[0, 0, 0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
+        results_in =  {q:[0, 0, 0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
+        for packet_result in active_users[sid].simulate():
+            results_out[packet_result[0][0]][0] += packet_result[0][1][0]
+            results_out[packet_result[0][0]][1] += packet_result[0][1][1]
+            results_out[packet_result[0][0]][2] += packet_result[0][1][2]
+            results_in[packet_result[1][0]][0] += packet_result[1][1][0]
+            results_in[packet_result[1][0]][1] += packet_result[1][1][1]
+            results_in[packet_result[1][0]][2] += packet_result[1][1][2]
         update_table=[]
+        print (results_in)
         for node_id, node_data in active_users[sid].current_nodes.items():
             update_table.append({
                 "Node_ID": node_id,
