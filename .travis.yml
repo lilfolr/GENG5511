@@ -7,7 +7,7 @@ addons:
     packages:
     - build-essential 
     - libpcre3-dev
-    - swig3
+    - swig3.0
     - python3-dev
 install:
   - pip install -r src/2_Backend/requirements.txt
