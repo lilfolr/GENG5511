@@ -17,7 +17,7 @@ else:
 import iptables_sim_interface as ip
 from iptables_sim import in_packet, in_rule
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class Application(object):
     def __init__(self):
@@ -27,6 +27,7 @@ class Application(object):
         self.sim_packets = []  # [ip.in_packet]
         # 3 result files: Per packet; Per node per packet & per rule per node per packet
         self.sim_results = {'packet_results':[],'node_results':[],'rule_results':[]}  # 
+        self.simulation_run_number = 0
 
     def create_node(self, node_id, firewall_type="IPTables"):
         """
@@ -63,10 +64,11 @@ class Application(object):
         output = io.StringIO()
         csvWriter = csv.writer(output)
         csvWriter.writerow(['packet_id', 'network_layer', 'application_layer', 'source_port', 
-                            'destination_port', 'source_ip', 'destination_ip', 'ttl'])
+                            'destination_port', 'source_ip', 'destination_ip', 'input_device', 
+                            'output_device', 'ttl'])
         i=1
         for node in self.current_nodes:
-            csvWriter.writerow([str(i), 'icmp', '', '', '', self.current_nodes[node]['ip'], '', '2'])
+            csvWriter.writerow([str(i), 'icmp', '', '', '', self.current_nodes[node]['ip'], '', 'eth1','eth1', '2'])
             i += 1
         str_out = output.getvalue()
         output.close()
@@ -90,10 +92,13 @@ class Application(object):
                 (dst: (A, B, R))
             )
         """
+        self.simulation_run_number +=1 
+        logger.debug("Starting Simulation {:d}".format(self.simulation_run_number))
         if not packets:
             packets = self.sim_packets
+        logger.debug("Packets: "+str(packets))
         for packet in packets:
-            print ("{} - {}".format(packet.src_addr, packet.dst_addr))
+            logger.info("{} -> {}".format(packet.src_addr, packet.dst_addr))
             src_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.src_addr][0]
             dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dst_addr][0]
             src_node_out_chain = self.current_nodes[src_node_id]["firewall"].chains["OUTPUT"]
@@ -103,6 +108,7 @@ class Application(object):
             str_protocol = ip.reverse_lookup_protocol(packet.protocol)
             out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0, "OUTPUT")
             packet_result = {
+                'Simulation_Run_Number': str(self.simulation_run_number),
                 "Packet_ID":        "-1",
                 "Source_IP":        packet.src_addr,
                 "Destination_IP":   packet.dst_addr,
@@ -110,6 +116,7 @@ class Application(object):
                 "Result":           out_res,
             }
             self.sim_results["node_results"].append({
+                'Simulation_Run_Number': str(self.simulation_run_number),
                 'Packet_ID':    '-1',
                 'Hop_Number':   '1',
                 'Node_IP':      packet.src_addr, 
@@ -125,6 +132,7 @@ class Application(object):
                 logger.info("Checking Client node")
                 in_res = self._traverse_chain(dst_node_id, dst_node_in_chain, packet, 0, "INPUT")
                 self.sim_results["node_results"].append({
+                    'Simulation_Run_Number': str(self.simulation_run_number),
                     'Packet_ID':    '-1',
                     'Hop_Number':   '2',
                     'Node_IP':      packet.dst_addr, 
@@ -149,18 +157,23 @@ class Application(object):
                 raise Exception("Row {} is invalid".format(str(row_n+1)))
             print (row)     
             packet = in_packet()
-            packet.ttl      = int(row[7])
+            packet.ttl      = int(row[9])
             packet.protocol = ip.lookup_protocol(row[1])
             packet.src_addr = row[5]
             packet.dst_addr = row[6]
+            packet.indev = row[7]
+            packet.outdev = row[8]
             self.sim_packets.append(packet)
     def _valid_sim_packet_row(self,row):
-        if len(row)!=8:
+        if len(row)!=10:
+            logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), 10))
             return False
         for r in row:
             if not isinstance(r, str):
+                logger.warn("Invalid row field. {} is not a string".format(str(r)))
                 return False
         if not ip.lookup_protocol(row[1]):
+            logger.warn("Invalid protocol {}".format(row[1]))
             return False
         return True
 
@@ -168,8 +181,9 @@ class Application(object):
         """
         Returns "DROP"; "ACCEPT"; or "REJECT"
         """
+        logger.info("Running for chain "+chain_name)
         # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
-        rule_result = {"Packet_ID": "-1", "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
+        rule_result = {'Simulation_Run_Number': str(self.simulation_run_number), "Packet_ID": "-1", "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
                        "Protocol": ip.reverse_lookup_protocol(packet.protocol)}
         if recursive_count>500:
             logger.warning("Recursion loop detected - dropping")
@@ -183,23 +197,24 @@ class Application(object):
             ip_rule.indev = rule.input_device if rule.input_device else ""
             ip_rule.outdev = rule.output_device if rule.output_device else ""
             ip_rule_str = "P:{} S:{} D:{} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.indev, ip_rule.outdev)
+            logger.debug("Checking Packet {} against Rule {}".format("S: "+packet.src_addr+" D:"+packet.dst_addr, ip_rule_str))
             if ip.check_rule_packet(ip_rule, packet):
-                if rule.match in ip.BASE_RULES:
+                if rule.match_chain in ip.BASE_RULES:
                     tmp_res = deepcopy(rule_result)
                     tmp_res["Rule"] = ip_rule_str
                     tmp_res["Result"] = "DROP"
                     self.sim_results["rule_results"].append(tmp_res)
-                    return rule.match
+                    return rule.match_chain
                 else:
                     try:
-                        next_chain = self.current_nodes[node]["firewall"].chains[rule.match]
+                        next_chain = self.current_nodes[node]["firewall"].chains[rule.match_chain]
                         tmp_res = deepcopy(rule_result)
                         tmp_res["Rule"] = ip_rule_str
                         tmp_res["Result"] = next_chain
                         self.sim_results["rule_results"].append(tmp_res)
-                        return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match)
+                        return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match_chain)
                     except KeyError:
-                        logger.warning("Chain {} can't be found".format(rule.match))
+                        logger.warning("Chain {} can't be found".format(rule.match_chain))
                         tmp_res = deepcopy(rule_result)
                         tmp_res["Rule"] = "Chain not found"
                         tmp_res["Result"] = "DROP"

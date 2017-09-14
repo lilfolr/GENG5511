@@ -7,6 +7,8 @@ typedef struct in_packets{
 	int protocol;
 	char* dst_addr;
 	char* src_addr;
+	char* indev;
+	char* outdev;
 } in_packet;
 
 // Input struct for defining our rule
@@ -24,6 +26,8 @@ typedef struct in_packets{
 	int protocol;
 	char* dst_addr;
 	char* src_addr;
+	char* indev;
+	char* outdev;
 } in_packet;
 
 typedef struct in_rules{
