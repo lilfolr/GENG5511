@@ -10,6 +10,6 @@ install:
 script:
   - cd src
   - cd 2_Backend
-  - python -m unittest test.py
+  - python test.py
 notifications:
   slack: leighton-personal:qDniIaHsJ8P86IzoW1LBHN8p
