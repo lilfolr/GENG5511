@@ -202,7 +202,7 @@ class Application(object):
                 if rule.match_chain in ip.BASE_RULES:
                     tmp_res = deepcopy(rule_result)
                     tmp_res["Rule"] = ip_rule_str
-                    tmp_res["Result"] = "DROP"
+                    tmp_res["Result"] = rule.match_chain
                     self.sim_results["rule_results"].append(tmp_res)
                     return rule.match_chain
                 else:

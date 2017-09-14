@@ -10,3 +10,5 @@ run
 test
 *.tmp.c
 **/.vscode
+
+.fseventsd/
