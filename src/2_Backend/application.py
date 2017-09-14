@@ -97,7 +97,9 @@ class Application(object):
         if not packets:
             packets = self.sim_packets
         logger.debug("Packets: "+str(packets))
-        for packet in packets:
+        for packet_struct in packets:
+            packet_id = str(packet_struct[0])
+            packet = packet_struct[1]
             logger.info("{} -> {}".format(packet.src_addr, packet.dst_addr))
             src_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.src_addr][0]
             dst_node_id = [x for x,v in self.current_nodes.items() if v['ip']==packet.dst_addr][0]
@@ -109,7 +111,7 @@ class Application(object):
             out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0, "OUTPUT")
             packet_result = {
                 'Simulation_Run_Number': str(self.simulation_run_number),
-                "Packet_ID":        "-1",
+                "Packet_ID":        packet_id,
                 "Source_IP":        packet.src_addr,
                 "Destination_IP":   packet.dst_addr,
                 "Protocol":         str_protocol,
@@ -117,7 +119,7 @@ class Application(object):
             }
             self.sim_results["node_results"].append({
                 'Simulation_Run_Number': str(self.simulation_run_number),
-                'Packet_ID':    '-1',
+                'Packet_ID':    packet_id,
                 'Hop_Number':   '1',
                 'Node_IP':      packet.src_addr, 
                 'Direction':    'Output', 
@@ -130,10 +132,10 @@ class Application(object):
             # check input
             if out_res == "ACCEPT":
                 logger.info("Checking Client node")
-                in_res = self._traverse_chain(dst_node_id, dst_node_in_chain, packet, 0, "INPUT")
+                in_res = self._traverse_chain(dst_node_id, dst_node_in_chain, packet, 0, "INPUT", packet_id)
                 self.sim_results["node_results"].append({
                     'Simulation_Run_Number': str(self.simulation_run_number),
-                    'Packet_ID':    '-1',
+                    'Packet_ID':    packet_id,
                     'Hop_Number':   '2',
                     'Node_IP':      packet.dst_addr, 
                     'Direction':    'Input', 
@@ -163,7 +165,7 @@ class Application(object):
             packet.dst_addr = row[6]
             packet.indev = row[7]
             packet.outdev = row[8]
-            self.sim_packets.append(packet)
+            self.sim_packets.append((row[0], packet))
     def _valid_sim_packet_row(self,row):
         if len(row)!=10:
             logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), 10))
@@ -177,13 +179,13 @@ class Application(object):
             return False
         return True
 
-    def _traverse_chain(self, node, chain, packet, recursive_count, chain_name=""):
+    def _traverse_chain(self, node, chain, packet, recursive_count, chain_name="", packet_id="-1"):
         """
         Returns "DROP"; "ACCEPT"; or "REJECT"
         """
         logger.info("Running for chain "+chain_name)
         # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
-        rule_result = {'Simulation_Run_Number': str(self.simulation_run_number), "Packet_ID": "-1", "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
+        rule_result = {'Simulation_Run_Number': str(self.simulation_run_number), "Packet_ID": packet_id, "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
                        "Protocol": ip.reverse_lookup_protocol(packet.protocol)}
         if recursive_count>500:
             logger.warning("Recursion loop detected - dropping")
@@ -212,7 +214,7 @@ class Application(object):
                         tmp_res["Rule"] = ip_rule_str
                         tmp_res["Result"] = next_chain
                         self.sim_results["rule_results"].append(tmp_res)
-                        return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match_chain)
+                        return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match_chain, packet_id)
                     except KeyError:
                         logger.warning("Chain {} can't be found".format(rule.match_chain))
                         tmp_res = deepcopy(rule_result)
