@@ -108,7 +108,7 @@ class Application(object):
             # Check output
             logger.info("Checking Server node")
             str_protocol = ip.reverse_lookup_protocol(packet.protocol)
-            out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0, "OUTPUT")
+            out_res = self._traverse_chain(src_node_id, src_node_out_chain, packet, 0, "OUTPUT", packet_id)
             packet_result = {
                 'Simulation_Run_Number': str(self.simulation_run_number),
                 "Packet_ID":        packet_id,
@@ -212,7 +212,7 @@ class Application(object):
                         next_chain = self.current_nodes[node]["firewall"].chains[rule.match_chain]
                         tmp_res = deepcopy(rule_result)
                         tmp_res["Rule"] = ip_rule_str
-                        tmp_res["Result"] = next_chain
+                        tmp_res["Result"] = rule.match_chain
                         self.sim_results["rule_results"].append(tmp_res)
                         return self._traverse_chain(node, next_chain, packet, recursive_count+1, rule.match_chain, packet_id)
                     except KeyError:
