@@ -4,6 +4,9 @@ python:
   - "3.6"
 install:
   - pip install -r src/2_Backend/requirements.txt
+  - cd src/iptables
+  - make
+  - cd ../../
 script:
   - cd src
   - cd 2_Backend
