@@ -7,8 +7,9 @@ addons:
     packages:
     - build-essential 
     - libpcre3-dev
-    - swig3.0
+    - swig
     - python3-dev
+    - python-pip
 install:
   - pip install -r src/2_Backend/requirements.txt
   - cd src/iptables

@@ -462,7 +462,7 @@ async def run_simulation(sid, data):
            data (str): Leave empty
 
        Returns:
-           ``["S","Simulation Complete"]``
+           ``["S","Simulation 2 Complete"]``
 
 
        Note:
@@ -471,7 +471,6 @@ async def run_simulation(sid, data):
     """
     try:
         check_user(sid)
-        sim_file = "/home/leighton/Documents/GENG5511/src/2_Backend/example.csv"
 
         results_out = {q:[0, 0, 0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
         results_in =  {q:[0, 0, 0] for q in active_users[sid].current_nodes.keys()}   # node: (total, blocked)
@@ -483,7 +482,6 @@ async def run_simulation(sid, data):
             results_in[packet_result[1][0]][1] += packet_result[1][1][1]
             results_in[packet_result[1][0]][2] += packet_result[1][1][2]
         update_table=[]
-        print (results_in)
         for node_id, node_data in active_users[sid].current_nodes.items():
             update_table.append({
                 "Node_ID": node_id,
@@ -494,7 +492,7 @@ async def run_simulation(sid, data):
             })
         await sio.emit('update-table', data=update_table, room=sid)
             
-        return ["S","Simulation Complete"]
+        return ["S","Simulation {:d} Complete".format(active_users[sid].simulation_run_number)]
     except Exception as e:
         raise
         return ["E", "Error running simulation - "+str(e)]
@@ -518,9 +516,9 @@ async def get_sim_results(sid,data):
        Example results::
 
             {
-                "packet":"Packet_ID,Source_IP,Destination_IP,Protocol,Result\\r\\n-1,10.87.0.0,10.198.0.1,ICMP,DROP\\r\\n-1,10.198.0.1,10.87.0.0,ICMP,DROP\\r\\n",
-                "node":"Packet_ID,Hop_Number,Node_IP,Direction,Protocol,Result\\r\\n-1,1,10.87.0.0,Output,ICMP,DROP\\r\\n-1,1,10.198.0.1,Output,ICMP,DROP\\r\\n",
-                "rule":"Packet_ID,Node_IP,Chain,Protocol,Rule,Result\\r\\n-1,10.87.0.0,OUTPUT,ICMP,P:ICMP S: D: iD: oD:,DROP\\r\\n-1,10.198.0.1,OUTPUT,ICMP,P:ICMP S: D: iD: oD:,DROP\\r\\n"
+                "packet":"Simulation_Run_Number,Packet_ID,Source_IP,Destination_IP,Protocol,Result\\r\\n-1,10.87.0.0,10.198.0.1,ICMP,DROP\\r\\n-1,10.198.0.1,10.87.0.0,ICMP,DROP\\r\\n",
+                "node":"Simulation_Run_Number,Packet_ID,Hop_Number,Node_IP,Direction,Protocol,Result\\r\\n-1,1,10.87.0.0,Output,ICMP,DROP\\r\\n-1,1,10.198.0.1,Output,ICMP,DROP\\r\\n",
+                "rule":"Simulation_Run_Number,Packet_ID,Node_IP,Chain,Protocol,Rule,Result\\r\\n-1,10.87.0.0,OUTPUT,ICMP,P:ICMP S: D: iD: oD:,DROP\\r\\n-1,10.198.0.1,OUTPUT,ICMP,P:ICMP S: D: iD: oD:,DROP\\r\\n"
             }
 
        Note:
@@ -532,21 +530,21 @@ async def get_sim_results(sid,data):
         to_return = {"packet":"","node":"","rule":""}
         # Packet
         file_data = StringIO() 
-        writer = csv.DictWriter(file_data, ['Packet_ID', 'Source_IP', 'Destination_IP', 'Protocol', 'Result'])
+        writer = csv.DictWriter(file_data, ['Simulation_Run_Number', 'Packet_ID', 'Source_IP', 'Destination_IP', 'Protocol', 'Result'])
         writer.writeheader()
         writer.writerows(active_users[sid].sim_results['packet_results'])
         print("here")
         to_return["packet"] = file_data.getvalue()
         # Node
         file_data = StringIO() 
-        writer = csv.DictWriter(file_data, ['Packet_ID', 'Hop_Number', 'Node_IP', 'Direction', 'Protocol', 'Result' ])
+        writer = csv.DictWriter(file_data, ['Simulation_Run_Number', 'Packet_ID', 'Hop_Number', 'Node_IP', 'Direction', 'Protocol', 'Result' ])
         writer.writeheader()
         writer.writerows(active_users[sid].sim_results["node_results"])
         print("here2")
         to_return["node"] = file_data.getvalue()
         # Rule
         file_data = StringIO() 
-        writer = csv.DictWriter(file_data, ['Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'])
+        writer = csv.DictWriter(file_data, ['Simulation_Run_Number', 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'])
         writer.writeheader()
         writer.writerows(active_users[sid].sim_results["rule_results"])
         to_return["rule"] = file_data.getvalue()

@@ -27,6 +27,7 @@ class Application(object):
         self.sim_packets = []  # [ip.in_packet]
         # 3 result files: Per packet; Per node per packet & per rule per node per packet
         self.sim_results = {'packet_results':[],'node_results':[],'rule_results':[]}  # 
+        self.simulation_run_number = 0
 
     def create_node(self, node_id, firewall_type="IPTables"):
         """
@@ -91,7 +92,8 @@ class Application(object):
                 (dst: (A, B, R))
             )
         """
-        logger.debug("Starting Simulation")
+        self.simulation_run_number +=1 
+        logger.debug("Starting Simulation {:d}".format(self.simulation_run_number))
         if not packets:
             packets = self.sim_packets
         logger.debug("Packets: "+str(packets))
@@ -113,6 +115,7 @@ class Application(object):
                 "Result":           out_res,
             }
             self.sim_results["node_results"].append({
+                'Simulation_Run_Number': str(self.simulation_run_number),
                 'Packet_ID':    '-1',
                 'Hop_Number':   '1',
                 'Node_IP':      packet.src_addr, 
@@ -128,6 +131,7 @@ class Application(object):
                 logger.info("Checking Client node")
                 in_res = self._traverse_chain(dst_node_id, dst_node_in_chain, packet, 0, "INPUT")
                 self.sim_results["node_results"].append({
+                    'Simulation_Run_Number': str(self.simulation_run_number),
                     'Packet_ID':    '-1',
                     'Hop_Number':   '2',
                     'Node_IP':      packet.dst_addr, 
@@ -178,7 +182,7 @@ class Application(object):
         """
         logger.info("Running for chain "+chain_name)
         # 'Packet_ID', 'Node_IP', 'Chain', 'Protocol', 'Rule', 'Result'
-        rule_result = {"Packet_ID": "-1", "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
+        rule_result = {'Simulation_Run_Number': str(self.simulation_run_number), "Packet_ID": "-1", "Chain": chain_name, "Node_IP": self.current_nodes[node]["ip"], 
                        "Protocol": ip.reverse_lookup_protocol(packet.protocol)}
         if recursive_count>500:
             logger.warning("Recursion loop detected - dropping")
