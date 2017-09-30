@@ -21,6 +21,8 @@ class Rule(object):
     protocol = None
     src = None
     dst = None
+    src_port = None
+    dst_port = None
     match_chain = "DROP"  # Can either be a chain, or a final rule
 
     def __str__(self):
@@ -101,11 +103,16 @@ def check_rule_packet(rule, packet):
 
 def lookup_protocol(protocol_name):
     # See botton of run.c
-    if protocol_name and protocol_name.lower() == 'icmp':
-        return 1
+    if protocol_name: 
+        if protocol_name.lower() == 'icmp':
+            return 1
+        if protocol_name.lower() == 'udpip':
+            return 17
     return None
 
 def reverse_lookup_protocol(protocol_id):
     if protocol_id == 1:
         return "ICMP"
+    if protocol_id == 17:
+        return 'udpip'.upper()
     return None

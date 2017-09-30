@@ -63,7 +63,7 @@ class Application(object):
         """returns string template for packet simulation"""
         output = io.StringIO()
         csvWriter = csv.writer(output)
-        csvWriter.writerow(['packet_id', 'network_layer', 'application_layer', 'source_port', 
+        csvWriter.writerow(['packet_id', 'network_layer', 'source_port', 
                             'destination_port', 'source_ip', 'destination_ip', 'input_device', 
                             'output_device', 'ttl'])
         i=1
@@ -159,16 +159,19 @@ class Application(object):
                 raise Exception("Row {} is invalid".format(str(row_n+1)))
             print (row)     
             packet = in_packet()
-            packet.ttl      = int(row[9])
+            packet.ttl      = int(row[8])
             packet.protocol = ip.lookup_protocol(row[1])
-            packet.src_addr = row[5]
-            packet.dst_addr = row[6]
-            packet.indev = row[7]
-            packet.outdev = row[8]
+            packet.src_port = int(row[2]) if row[2] else 0
+            packet.dst_port = int(row[3]) if row[3] else 0
+            packet.src_addr = row[4]
+            packet.dst_addr = row[5]
+            packet.indev = row[6]
+            packet.outdev = row[7]
             self.sim_packets.append((row[0], packet))
     def _valid_sim_packet_row(self,row):
-        if len(row)!=10:
-            logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), 10))
+        expected_len = 9
+        if len(row) != expected_len:
+            logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), expected_len))
             return False
         for r in row:
             if not isinstance(r, str):
@@ -195,10 +198,12 @@ class Application(object):
             prot_no = ip.lookup_protocol(rule.protocol)
             ip_rule.protocol = prot_no if prot_no else 1  #TODO: Allow for 'ANY' protocol
             ip_rule.src_addr = rule.src if rule.src else ""
-            ip_rule.dst_addr = rule.dst if rule.dst else ""  # TODO: 'ANY' is probably a mask
+            ip_rule.dst_addr = rule.dst if rule.dst else ""  
+            ip_rule.src_port = int(rule.src_port) if rule.src_port else 0
+            ip_rule.dst_port = int(rule.dst_port) if rule.dst_port else 0
             ip_rule.indev = rule.input_device if rule.input_device else ""
             ip_rule.outdev = rule.output_device if rule.output_device else ""
-            ip_rule_str = "P:{} S:{} D:{} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.indev, ip_rule.outdev)
+            ip_rule_str = "P:{} S:{} D:{} SP:{:d} DP:{:d} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.src_port, ip_rule.dst_port, ip_rule.indev, ip_rule.outdev)
             logger.debug("Checking Packet {} against Rule {}".format("S: "+packet.src_addr+" D:"+packet.dst_addr, ip_rule_str))
             if ip.check_rule_packet(ip_rule, packet):
                 if rule.match_chain in ip.BASE_RULES:

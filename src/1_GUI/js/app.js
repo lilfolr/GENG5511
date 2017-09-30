@@ -30,14 +30,6 @@ app = new Vue({
             shape:"",
             type: "",
             committed: false,
-            packet_simulation:{
-                network_protocol: "",
-                application_protocol: "",
-                source_port: 22,
-                dest_port: 22,
-                ttl: 3,
-                corrupt: 0
-            },
             firewall:{
                 type: "",
                 current_rules: [
@@ -76,6 +68,14 @@ app = new Vue({
                         any: true,
                         value: ""
                     },
+                    src_port:{
+                        any: true,
+                        value: ""
+                    },
+                    dst_port:{
+                        any: true,
+                        value: ""
+                    },
                     chain: ""
 
                 }
@@ -95,10 +95,6 @@ app = new Vue({
         },
         packet_options:{
             'Network_Layer':{
-                'TCP/IP':{
-                    label: "TCP/IP",
-                    value: "tcpip"
-                },
                 'UDP/IP':{
                     label: "UDP/IP",
                     value: "udpip"
@@ -107,15 +103,7 @@ app = new Vue({
                     label: "ICMP",
                     value: "icmp"
                 }
-            },
-            'Application_Layer':[
-                'HTTP',
-                'HTTPS',
-                'FTP',
-                'SMTP',
-                'DNS',
-                'DHCP'    
-            ]
+            }
         },
         firewall_options:{
             'type':[
@@ -129,7 +117,6 @@ app = new Vue({
             fileUpload: false,
             downloadFile: false,
             downloadResults: false,
-            packet: false,
             firewall: false
         },
         tableData: [],
@@ -156,14 +143,6 @@ app = new Vue({
                 shape:"",
                 type: "",
                 committed: false,
-                packet_simulation:{
-                    network_protocol: "",
-                    application_protocol: "",
-                    source_port: 22,
-                    dest_port: 22,
-                    ttl: 3,
-                    corrupt: 0
-                },
                 firewall:{
                             type: "",
                             current_rules: [
@@ -186,6 +165,14 @@ app = new Vue({
                                 value: ""
                             },
                             dst:{
+                                any: true,
+                                value: ""
+                            },
+                            src_port:{
+                                any: true,
+                                value: ""
+                            },
+                            dst_port:{
                                 any: true,
                                 value: ""
                             },
@@ -302,20 +289,9 @@ app = new Vue({
                     });
                 }
             }
-            },
-            load_packet_dialog: function(){
-                var node_id = this.selected_node.id;
-                if (node_id==-1){
-                    this.$notify({
-                      title: 'Select a node',
-                      message: 'Select a node first',
-                      type: 'warning'
-                  });
-                } else {
-                    websocket_run('get-packet_gen', node_id, function(){
-                        app.$data.form_visible.packet=true;
-                    });
-                }
+            else if (key=="4"){
+                websocket_run('update-status-table', "loud", ()=>{});
+            }
             },
             load_firewall_dialog: function(){
                 var node_id = this.selected_node.id;
@@ -414,8 +390,10 @@ app = new Vue({
             new_rule = app.$data.selected_node.firewall.new_rule;
             rule_data = {
                 chain: new_rule.chain,
-                dst: !new_rule.dst.any && new_rule.dst.value,
                 src: !new_rule.src.any && new_rule.src.value,
+                dst: !new_rule.dst.any && new_rule.dst.value,
+                src_port: !new_rule.src_port.any && new_rule.src_port.value,
+                dst_port: !new_rule.dst_port.any && new_rule.dst_port.value,
                 input_device: !new_rule.input_device.any && new_rule.input_device.value,
                 output_device: !new_rule.output_device.any && new_rule.output_device.value,
                 protocol: !new_rule.protocol.any && new_rule.protocol.value,
