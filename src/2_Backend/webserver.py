@@ -412,7 +412,7 @@ async def download_sim_file(sid, data):
             Simulation template ``["S", "", <template>]``
 
         Example Response template:
-            ``"packet_id,network_layer,application_layer,source_port,destination_port,source_ip,destination_ip,input_device,output_device,ttl \\r\\n 1,icmp,,,,10.47.0.0,,eth1,eth1,2 \\r\\n"``
+            ``"packet_id,network_layer,source_port,destination_port,source_ip,destination_ip,input_device,output_device,ttl \\r\\n 1,icmp,,,,10.47.0.0,,eth1,eth1,2 \\r\\n"``
 
     """
     try:

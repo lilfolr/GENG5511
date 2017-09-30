@@ -103,10 +103,6 @@ app = new Vue({
         },
         packet_options:{
             'Network_Layer':{
-                'TCP/IP':{
-                    label: "TCP/IP",
-                    value: "tcpip"
-                },
                 'UDP/IP':{
                     label: "UDP/IP",
                     value: "udpip"
@@ -115,15 +111,7 @@ app = new Vue({
                     label: "ICMP",
                     value: "icmp"
                 }
-            },
-            'Application_Layer':[
-                'HTTP',
-                'HTTPS',
-                'FTP',
-                'SMTP',
-                'DNS',
-                'DHCP'    
-            ]
+            }
         },
         firewall_options:{
             'type':[

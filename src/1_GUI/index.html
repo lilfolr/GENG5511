@@ -147,9 +147,6 @@
                         <el-collapse-item title="Network Layer" name="1">
                             <el-tag v-for="item in packet_options.Network_Layer" type="primary" :value="item.key">{{item.label}} [{{item.value}}]</el-tag>
                         </el-collapse-item>
-                        <el-collapse-item title="Application Layer" name="2">
-                            <el-tag v-for="item in packet_options.Application_Layer" type="primary" :value="item">[{{item}}]</el-tag>
-                        </el-collapse-item>
                         <el-collapse-item title="Source/Destination IP" name="3">
                             <el-tag v-for="item in tableData" type="primary" :value="item.Node_Addr">{{item.Node_Name}} [{{item.Node_Addr}}]</el-tag>
                         </el-collapse-item>
