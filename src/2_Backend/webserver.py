@@ -244,8 +244,8 @@ async def get_firewall(sid, node_id):
             for rule in rules:
                 child = {
                     "id": i,
-                    "label": "-i {} -o {} -p {} -s {} -d {} -j {}".format(rule.input_device, rule.output_device, 
-                                                                          rule.protocol, rule.src, rule.dst, rule.match_chain).replace("None", "Any")
+                    "label": "-i {} -o {} -p {} -s {} -d {} --sport {} --dport -j {}".format(rule.input_device, rule.output_device, 
+                                                                          rule.protocol, rule.src, rule.dst, rule.src_port, rule.dst_port, rule.match_chain).replace("None", "Any")
                 }
                 chain["children"].append(child)
                 i += 1
@@ -377,7 +377,7 @@ def add_rule(sid, data):
         check_user(sid)
         node_id = data[0]
         chain = data[1]
-        rule = data[2]  # False = Any
+        rule = data[2]
         logger.info("Adding {} from {} - node {}".format(rule, chain, node_id))
         firewall = active_users[sid].get_node_firewall(node_id)
         ip_rule = ip.Rule()
@@ -386,15 +386,13 @@ def add_rule(sid, data):
         ip_rule.protocol = rule["protocol"] if rule["protocol"] else None
         ip_rule.src = rule["src"] if rule["src"] else None
         ip_rule.dst = rule["dst"] if rule["dst"] else None
-        logger.info("1")
+        ip_rule.src_port = rule['src_port'] if rule["src_port"] else None
+        ip_rule.dst_port = rule['dst_port'] if rule["dst_port"] else None
         if not rule["chain"]:
             raise ValueError("Match chain must have a value")
-        logger.info("2")
         if rule["chain"] not in firewall.chains.keys():
             firewall.create_chain(rule["chain"])
-            logger.info("3")
             msg += ". New chain {} created".format(rule["chain"])
-        logger.info("4")
         ip_rule.match_chain = rule["chain"]
         firewall.add_chain_rule(chain, ip_rule, 0)  #TODO: allow custom index location
         return ["S", msg]

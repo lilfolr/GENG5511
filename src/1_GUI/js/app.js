@@ -76,6 +76,14 @@ app = new Vue({
                         any: true,
                         value: ""
                     },
+                    src_port:{
+                        any: true,
+                        value: ""
+                    },
+                    dst_port:{
+                        any: true,
+                        value: ""
+                    },
                     chain: ""
 
                 }
@@ -186,6 +194,14 @@ app = new Vue({
                                 value: ""
                             },
                             dst:{
+                                any: true,
+                                value: ""
+                            },
+                            src_port:{
+                                any: true,
+                                value: ""
+                            },
+                            dst_port:{
                                 any: true,
                                 value: ""
                             },
@@ -414,8 +430,10 @@ app = new Vue({
             new_rule = app.$data.selected_node.firewall.new_rule;
             rule_data = {
                 chain: new_rule.chain,
-                dst: !new_rule.dst.any && new_rule.dst.value,
                 src: !new_rule.src.any && new_rule.src.value,
+                dst: !new_rule.dst.any && new_rule.dst.value,
+                src_port: !new_rule.src_port.any && new_rule.src_port.value,
+                dst_port: !new_rule.dst_port.any && new_rule.dst_port.value,
                 input_device: !new_rule.input_device.any && new_rule.input_device.value,
                 output_device: !new_rule.output_device.any && new_rule.output_device.value,
                 protocol: !new_rule.protocol.any && new_rule.protocol.value,

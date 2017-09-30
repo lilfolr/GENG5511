@@ -294,6 +294,32 @@
                             <el-form-item>
                                 <el-row>
                                     <el-col :span="6">
+                                        <span>Source Port</span>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-checkbox v-model="selected_node.firewall.new_rule.src_port.any">Any</el-checkbox>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-input placeholder="22" v-model="selected_node.firewall.new_rule.src_port.value" :disabled="selected_node.firewall.new_rule.src_port.any"></el-input>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
+                                        <span>Destination Port</span>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-checkbox v-model="selected_node.firewall.new_rule.dst_port.any">Any</el-checkbox>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-input placeholder="22" v-model="selected_node.firewall.new_rule.dst_port.value" :disabled="selected_node.firewall.new_rule.dst_port.any"></el-input>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-row>
+                                    <el-col :span="6">
                                         <span>Match Chain</span>
                                     </el-col>
                                     <el-col :span="8">
