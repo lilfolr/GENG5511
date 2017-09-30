@@ -21,6 +21,8 @@ class Rule(object):
     protocol = None
     src = None
     dst = None
+    src_port = None
+    dst_port = None
     match_chain = "DROP"  # Can either be a chain, or a final rule
 
     def __str__(self):

@@ -244,7 +244,7 @@ async def get_firewall(sid, node_id):
             for rule in rules:
                 child = {
                     "id": i,
-                    "label": "-i {} -o {} -p {} -s {} -d {} --sport {} --dport -j {}".format(rule.input_device, rule.output_device, 
+                    "label": "-i {} -o {} -p {} -s {} -d {} --sport {} --dport {} -j {}".format(rule.input_device, rule.output_device, 
                                                                           rule.protocol, rule.src, rule.dst, rule.src_port, rule.dst_port, rule.match_chain).replace("None", "Any")
                 }
                 chain["children"].append(child)
