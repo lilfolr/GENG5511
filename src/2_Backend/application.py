@@ -159,7 +159,7 @@ class Application(object):
                 raise Exception("Row {} is invalid".format(str(row_n+1)))
             print (row)     
             packet = in_packet()
-            packet.ttl      = int(row[9])
+            packet.ttl      = int(row[8])
             packet.protocol = ip.lookup_protocol(row[1])
             packet.src_port = int(row[2]) if row[2] else 0
             packet.dst_port = int(row[3]) if row[3] else 0
@@ -169,8 +169,9 @@ class Application(object):
             packet.outdev = row[7]
             self.sim_packets.append((row[0], packet))
     def _valid_sim_packet_row(self,row):
-        if len(row)!=9:
-            logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), 10))
+        expected_len = 9
+        if len(row) != expected_len:
+            logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), expected_len))
             return False
         for r in row:
             if not isinstance(r, str):
