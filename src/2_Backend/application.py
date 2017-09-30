@@ -161,12 +161,12 @@ class Application(object):
             packet = in_packet()
             packet.ttl      = int(row[9])
             packet.protocol = ip.lookup_protocol(row[1])
-            packet.src_port = row[3]
-            packet.dst_port = row[4]
-            packet.src_addr = row[5]
-            packet.dst_addr = row[6]
-            packet.indev = row[7]
-            packet.outdev = row[8]
+            packet.src_port = int(row[2]) row[2] else 0
+            packet.dst_port = int(row[3]) if row[3] else 0
+            packet.src_addr = row[4]
+            packet.dst_addr = row[5]
+            packet.indev = row[6]
+            packet.outdev = row[7]
             self.sim_packets.append((row[0], packet))
     def _valid_sim_packet_row(self,row):
         if len(row)!=10:
