@@ -52,8 +52,10 @@ unsigned short in_cksum(unsigned short *addr, int len)
 typedef struct in_packets{
     int ttl;
 	int protocol;
-	char* dst_addr;
     char* src_addr;
+	char* dst_addr;
+    int src_port;   //Ports arent defined in ip;
+    int dst_port;   //use 0 as 'all ports' or undefined
     char* indev;
 	char* outdev;
 } in_packet;
@@ -62,7 +64,9 @@ typedef struct in_packets{
 typedef struct in_rules{
 	int protocol;
 	char* src_addr;
-	char* dst_addr;
+    char* dst_addr;
+    int src_port;
+    int dst_port;
 	char* indev;
 	char* outdev;
 } in_rule;
@@ -122,8 +126,20 @@ int run_sim(in_packet *packet, in_rule *rule, int debug){
     if (strcmp(rule->outdev, "")==0)
         strcpy(ipinfo->outiface, outdev);
 
+    // CHECKING
+    packet_pass = false;
+    // Check ports for UDP (if using udp)
+    if (rule->src_port>0)
+        if (packet->src_port!=rule->src_port)
+            goto result;
+
+    if (rule->dst_port>0)
+        if (packet->dst_port!=rule->dst_port)
+            goto result;
+
     packet_pass = ip_packet_match(ip, indev, outdev, ipinfo, 0, debug);
-    //printf("Result: ");
+
+result:
     if (debug){
         printf(packet_pass ? "True\n" : "False\n");
         printf("End\n");
