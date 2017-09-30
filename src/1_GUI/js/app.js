@@ -289,6 +289,9 @@ app = new Vue({
                     });
                 }
             }
+            else if (key=="4"){
+                websocket_run('update-status-table', "loud", ()=>{});
+            }
             },
             load_firewall_dialog: function(){
                 var node_id = this.selected_node.id;
