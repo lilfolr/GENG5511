@@ -63,7 +63,7 @@ class Application(object):
         """returns string template for packet simulation"""
         output = io.StringIO()
         csvWriter = csv.writer(output)
-        csvWriter.writerow(['packet_id', 'network_layer', 'application_layer', 'source_port', 
+        csvWriter.writerow(['packet_id', 'network_layer', 'source_port', 
                             'destination_port', 'source_ip', 'destination_ip', 'input_device', 
                             'output_device', 'ttl'])
         i=1
@@ -169,7 +169,7 @@ class Application(object):
             packet.outdev = row[7]
             self.sim_packets.append((row[0], packet))
     def _valid_sim_packet_row(self,row):
-        if len(row)!=10:
+        if len(row)!=9:
             logger.warn("Invalid row length. Was {:d}. Expected {:d}".format(len(row), 10))
             return False
         for r in row:

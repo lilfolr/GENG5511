@@ -430,7 +430,7 @@ async def upload_simulation_file(sid, data):
            data: (str): The simulation file [csv format]
 
        Example Request data::
-          ``"packet_id,network_layer,application_layer,source_port,destination_port,source_ip,destination_ip,input_device,output_device,ttl\\r\\n1,icmp,,,,10.47.0.0,10.48.0.0,eth1,eth1,2"``
+          ``"packet_id,network_layer,source_port,destination_port,source_ip,destination_ip,input_device,output_device,ttl\\r\\n1,icmp,,,,10.47.0.0,10.48.0.0,eth1,eth1,2"``
         
 
        Returns:
