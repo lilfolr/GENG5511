@@ -161,8 +161,8 @@ class Application(object):
             packet = in_packet()
             packet.ttl      = int(row[9])
             packet.protocol = ip.lookup_protocol(row[1])
-            packet.src_port = row[3]
-            packet.dst_port = row[4]
+            packet.src_port = int(row[3]) if row[3] else 0
+            packet.dst_port = int(row[4]) if row[4] else 0
             packet.src_addr = row[5]
             packet.dst_addr = row[6]
             packet.indev = row[7]
@@ -198,11 +198,11 @@ class Application(object):
             ip_rule.protocol = prot_no if prot_no else 1  #TODO: Allow for 'ANY' protocol
             ip_rule.src_addr = rule.src if rule.src else ""
             ip_rule.dst_addr = rule.dst if rule.dst else ""  
-            ip_rule.src_port = rule.src_port if rule.src_port else ""
-            ip_rule.dst_port = rule.dst_port if rule.dst_port else ""
+            ip_rule.src_port = rule.src_port if rule.src_port else 0
+            ip_rule.dst_port = rule.dst_port if rule.dst_port else 0
             ip_rule.indev = rule.input_device if rule.input_device else ""
             ip_rule.outdev = rule.output_device if rule.output_device else ""
-            ip_rule_str = "P:{} S:{} D:{} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.indev, ip_rule.outdev)
+            ip_rule_str = "P:{} S:{} D:{} SP:{:d} DP:{:d} iD:{} oD:{}".format(ip.reverse_lookup_protocol(ip_rule.protocol), ip_rule.src_addr, ip_rule.dst_addr, ip_rule.src_port, ip_rule.dst_port, ip_rule.indev, ip_rule.outdev)
             logger.debug("Checking Packet {} against Rule {}".format("S: "+packet.src_addr+" D:"+packet.dst_addr, ip_rule_str))
             if ip.check_rule_packet(ip_rule, packet):
                 if rule.match_chain in ip.BASE_RULES:
