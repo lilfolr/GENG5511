@@ -117,11 +117,6 @@
                             <el-button type="default" :disabled="!selected_node.committed" @click="load_firewall_dialog">Edit Node Firewall</el-button>
                         </el-menu-item>
                     </el-menu-item-group>
-                    <el-menu-item-group title="Packets" v-if="selected_node.committed">
-                        <el-menu-item index="1-5">
-                            <el-button type="default" :disabled="!selected_node.committed" @click="load_packet_dialog">Edit Packet Simulation</el-button>
-                        </el-menu-item>
-                    </el-menu-item-group>
                     <el-menu-item-group title="Save">
                         <el-menu-item index="1-5">
                             <el-button type="primary" @click="update_node" v-if="selected_node.committed">Update</el-button>
@@ -336,44 +331,6 @@
         <el-button type="primary" @click="form_visible.firewall = false">Close</el-button>
     </span>
             </el-dialog>
-
-            <!-- Packet Modal -->
-            <el-dialog :title="'Packet Generation - '+selected_node.label" v-model="form_visible.packet" top="63" size="small">
-                <el-form>
-                    <el-form-item label="Network Layer">
-                        <el-select v-model="selected_node.packet_simulation.network_protocol" placeholder="Network Protocol">
-                            <el-option v-for="item in packet_options.Network_Layer" :key="item.value" :label="item.label" :value="item.value"></el-option>
-                        </el-select>
-                    </el-form-item>
-                    <el-form-item label="Application Layer">
-                        <el-select v-model="selected_node.packet_simulation.application_protocol" placeholder="Application Protocol">
-                            <el-option v-for="item in packet_options.Application_Layer" :key="item" :label="item" :value="item"></el-option>
-                        </el-select>
-                    </el-form-item>
-                    <el-form-item label="Source Port">
-                        <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.source_port">
-                            <template slot="prepend">#</template>
-                        </el-input>
-                    </el-form-item>
-                    <el-form-item label="Destination Port">
-                        <el-input placeholder="Port Number" v-model="selected_node.packet_simulation.dest_port">
-                            <template slot="prepend">#</template>
-                        </el-input>
-                    </el-form-item>
-                    <el-form-item label="">
-                        <div class="block">
-                            <span class="demonstration">Time to live </span>
-                            <el-input placeholder="Hops" v-model="selected_node.packet_simulation.ttl">
-                                <template slot="prepend">#</template>
-                            </el-input>
-                        </div>
-                </el-form>
-                <span slot="footer" class="dialog-footer">
-            <el-button @click="form_visible.packet = false">Cancel</el-button>
-            <el-button type="primary" @click="form_visible.packet = false">Confirm</el-button>
-          </span>
-            </el-dialog>
-
         </div>
     </div>
 

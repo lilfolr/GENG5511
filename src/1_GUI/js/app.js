@@ -30,14 +30,6 @@ app = new Vue({
             shape:"",
             type: "",
             committed: false,
-            packet_simulation:{
-                network_protocol: "",
-                application_protocol: "",
-                source_port: 22,
-                dest_port: 22,
-                ttl: 3,
-                corrupt: 0
-            },
             firewall:{
                 type: "",
                 current_rules: [
@@ -125,7 +117,6 @@ app = new Vue({
             fileUpload: false,
             downloadFile: false,
             downloadResults: false,
-            packet: false,
             firewall: false
         },
         tableData: [],
@@ -152,14 +143,6 @@ app = new Vue({
                 shape:"",
                 type: "",
                 committed: false,
-                packet_simulation:{
-                    network_protocol: "",
-                    application_protocol: "",
-                    source_port: 22,
-                    dest_port: 22,
-                    ttl: 3,
-                    corrupt: 0
-                },
                 firewall:{
                             type: "",
                             current_rules: [
@@ -306,20 +289,6 @@ app = new Vue({
                     });
                 }
             }
-            },
-            load_packet_dialog: function(){
-                var node_id = this.selected_node.id;
-                if (node_id==-1){
-                    this.$notify({
-                      title: 'Select a node',
-                      message: 'Select a node first',
-                      type: 'warning'
-                  });
-                } else {
-                    websocket_run('get-packet_gen', node_id, function(){
-                        app.$data.form_visible.packet=true;
-                    });
-                }
             },
             load_firewall_dialog: function(){
                 var node_id = this.selected_node.id;
