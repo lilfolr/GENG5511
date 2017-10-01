@@ -528,7 +528,7 @@ async def get_sim_results(sid,data):
         to_return = {"packet":"","node":"","rule":""}
         # Packet
         file_data = StringIO() 
-        writer = csv.DictWriter(file_data, ['Simulation_Run_Number', 'Packet_ID', 'Source_IP', 'Destination_IP', 'Protocol', 'Result'])
+        writer = csv.DictWriter(file_data, ['Simulation_Run_Number', 'Packet_ID', 'Source', 'Destination', 'Protocol', 'Result'])
         writer.writeheader()
         writer.writerows(active_users[sid].sim_results['packet_results'])
         print("here")
