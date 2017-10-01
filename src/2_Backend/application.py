@@ -112,16 +112,21 @@ class Application(object):
             packet_result = {
                 'Simulation_Run_Number': str(self.simulation_run_number),
                 "Packet_ID":        packet_id,
-                "Source_IP":        packet.src_addr,
-                "Destination_IP":   packet.dst_addr,
+                "Source":           packet.src_addr,
+                "Destination":      packet.dst_addr,
                 "Protocol":         str_protocol,
                 "Result":           out_res,
             }
+            if packet.src_port:
+                packet_result['Source']=packet_result['Source']+":"+str(packet.src_port)
+            if packet.dst_port:
+                packet_result['Destination']=packet_result['Destination']+":"+str(packet.dst_port)
+                
             self.sim_results["node_results"].append({
                 'Simulation_Run_Number': str(self.simulation_run_number),
                 'Packet_ID':    packet_id,
                 'Hop_Number':   '1',
-                'Node_IP':      packet.src_addr, 
+                'Node':         packet.src_addr +":"+str(packet.src_port) if packet.src_port else packet.src_addr,
                 'Direction':    'Output', 
                 'Protocol':     str_protocol, 
                 'Result':       out_res
@@ -137,7 +142,7 @@ class Application(object):
                     'Simulation_Run_Number': str(self.simulation_run_number),
                     'Packet_ID':    packet_id,
                     'Hop_Number':   '2',
-                    'Node_IP':      packet.dst_addr, 
+                    'Node':         packet.dst_addr+":"+str(packet.dst_port) if packet.dst_port else packet.dst_addr,
                     'Direction':    'Input', 
                     'Protocol':     str_protocol, 
                     'Result':       in_res
