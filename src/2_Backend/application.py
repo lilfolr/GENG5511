@@ -68,7 +68,7 @@ class Application(object):
                             'output_device', 'ttl'])
         i=1
         for node in self.current_nodes:
-            csvWriter.writerow([str(i), 'icmp', '', '', '', self.current_nodes[node]['ip'], '', 'eth1','eth1', '2'])
+            csvWriter.writerow([str(i), 'icmp', '', '', self.current_nodes[node]['ip'], '', 'eth1','eth1', '2'])
             i += 1
         str_out = output.getvalue()
         output.close()
