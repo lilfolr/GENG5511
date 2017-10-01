@@ -126,7 +126,7 @@ class Application(object):
                 'Simulation_Run_Number': str(self.simulation_run_number),
                 'Packet_ID':    packet_id,
                 'Hop_Number':   '1',
-                'Node':         packet.src_addr +":"+str(packet.src_port) if packet.src_port else packet.src_addr 
+                'Node':         packet.src_addr +":"+str(packet.src_port) if packet.src_port else packet.src_addr,
                 'Direction':    'Output', 
                 'Protocol':     str_protocol, 
                 'Result':       out_res
@@ -142,7 +142,7 @@ class Application(object):
                     'Simulation_Run_Number': str(self.simulation_run_number),
                     'Packet_ID':    packet_id,
                     'Hop_Number':   '2',
-                    'Node':         packet.dst_addr+":"+str(packet.dst_port) if packet.dst_port else packet.dst_addr 
+                    'Node':         packet.dst_addr+":"+str(packet.dst_port) if packet.dst_port else packet.dst_addr,
                     'Direction':    'Input', 
                     'Protocol':     str_protocol, 
                     'Result':       in_res
