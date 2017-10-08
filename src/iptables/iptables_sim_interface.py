@@ -108,11 +108,11 @@ def lookup_protocol(protocol_name):
             return 1
         if protocol_name.lower() == 'udpip':
             return 17
-    return None
+    return 0
 
 def reverse_lookup_protocol(protocol_id):
     if protocol_id == 1:
         return "ICMP"
     if protocol_id == 17:
         return 'udpip'.upper()
-    return None
+    return ""

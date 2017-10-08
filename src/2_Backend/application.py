@@ -201,7 +201,7 @@ class Application(object):
         for rule in chain:
             ip_rule = in_rule()
             prot_no = ip.lookup_protocol(rule.protocol)
-            ip_rule.protocol = prot_no if prot_no else 1  #TODO: Allow for 'ANY' protocol
+            ip_rule.protocol = prot_no if prot_no else 0
             ip_rule.src_addr = rule.src if rule.src else ""
             ip_rule.dst_addr = rule.dst if rule.dst else ""  
             ip_rule.src_port = int(rule.src_port) if rule.src_port else 0
