@@ -239,7 +239,7 @@ app = new Vue({
                 if (id==-1){
                     this.$notify({
                       title: 'Warning',
-                      message: 'Select a node to delete',
+                      message: 'Select a node before viewing its timeline',
                       type: 'warning'
                   });
                 }else{
