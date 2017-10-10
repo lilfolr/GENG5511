@@ -256,7 +256,13 @@ app = new Vue({
                             app.$data['form_visible']['timeline']=true;
                             app.$data.loading=true;
                             setTimeout(() => {
-                                var node_ip = app.tableData[app.selected_node.id].Node_Addr;
+                                var node_ip = ""
+                                app.tableData.forEach(function(e) {
+                                    if (e.Node_id == app.selected_node.id){
+                                        node_ip = e.Node_Addr;
+                                        break;
+                                    }
+                                }, this);
                                 var container = document.getElementById('timeline');
                                 container.innerHTML="";
                                 var options = {zoomable:true, format:{
