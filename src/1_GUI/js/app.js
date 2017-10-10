@@ -269,11 +269,17 @@ app = new Vue({
                                 for (var i = 1; i < x.length; i++) {
                                     var e = x[i].split(",");
                                     if (e[2]==node_ip){
+                                        classname = 'orange';
+                                        if (e[6]=="REJECT")
+                                            classname = 'red'
+                                        if (e[6]=="ACCEPT")
+                                            classname = 'green'
                                         base_start.setDate(base_start.getDate()+ 1);
                                         items.add({
                                             id: i,
                                             content: "Packet " + e[1] +" - "+e[3] +" -> "+e[6],
-                                            start: base_start.toISOString().split('T')[0]
+                                            start: base_start.toISOString().split('T')[0],
+                                            classname: classname
                                         });
                                     }
                                 }
