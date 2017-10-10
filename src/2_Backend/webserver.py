@@ -492,7 +492,6 @@ async def run_simulation(sid, data):
             
         return ["S","Simulation {:d} Complete".format(active_users[sid].simulation_run_number)]
     except Exception as e:
-        raise
         return ["E", "Error running simulation - "+str(e)]
 
 @sio.on('get-sim-results', namespace='')

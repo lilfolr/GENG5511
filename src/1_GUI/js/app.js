@@ -258,9 +258,8 @@ app = new Vue({
                             setTimeout(() => {
                                 var node_ip = ""
                                 app.tableData.forEach(function(e) {
-                                    if (e.Node_id == app.selected_node.id){
+                                    if (e.Node_ID == app.selected_node.id){
                                         node_ip = e.Node_Addr;
-                                        break;
                                     }
                                 }, this);
                                 var container = document.getElementById('timeline');
@@ -276,16 +275,16 @@ app = new Vue({
                                     var e = x[i].split(",");
                                     if (e[2]==node_ip){
                                         classname = 'orange';
-                                        if (e[6]=="REJECT")
+                                        if (e[6].trim()=="REJECT")
                                             classname = 'red'
-                                        if (e[6]=="ACCEPT")
+                                        if (e[6].trim()=="ACCEPT")
                                             classname = 'green'
                                         base_start.setDate(base_start.getDate()+ 1);
                                         items.add({
                                             id: i,
                                             content: "Packet " + e[1] +" - "+e[3] +" -> "+e[6],
                                             start: base_start.toISOString().split('T')[0],
-                                            classname: classname
+                                            className: classname
                                         });
                                     }
                                 }
