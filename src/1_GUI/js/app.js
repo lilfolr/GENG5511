@@ -258,32 +258,25 @@ app = new Vue({
                             setTimeout(() => {
                                 var node_ip = app.tableData[app.selected_node.id].Node_Addr;
                                 var container = document.getElementById('timeline');
+                                container.innerHTML="";
                                 var options = {zoomable:false, format:{
                                     minorLabels: {
                                         weekday:    'D',
                                 }},showMinorLabels:false,showMajorLabels:false,selectable:false,showCurrentTime:false}
                                 var items = new vis.DataSet([])
-                                x = app.simulation.results_node.split("\n");
+                                x = app.simulation.results_rule.split("\n");
                                 base_start = new Date();;
                                 for (var i = 1; i < x.length; i++) {
                                     var e = x[i].split(",");
-                                    if (e[3]==node_ip){
+                                    if (e[2]==node_ip){
                                         base_start.setDate(base_start.getDate()+ 1);
                                         items.add({
                                             id: i,
-                                            content: "Packet " + e[1] +" - "+e[6] +" - "+e[5],
+                                            content: "Packet " + e[3] +" - "+e[6] +" -> "+e[6],
                                             start: base_start.toISOString().split('T')[0]
                                         });
                                     }
                                 }
-                                var items = new vis.DataSet([
-                                {id: 1, content: 'item 1', start: '2014-04-20'},
-                                {id: 2, content: 'item 2', start: '2014-04-14'},
-                                {id: 3, content: 'item 3', start: '2014-04-18'},
-                                {id: 4, content: 'item 4', start: '2014-04-16'},
-                                {id: 5, content: 'item 5', start: '2014-04-25'},
-                                {id: 6, content: 'item 6', start: '2014-04-27'}
-                                ]);
                                 var timeline = new vis.Timeline(container, items, options);
                                 app.$data.loading=false;
                             }, 500);
