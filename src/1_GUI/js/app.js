@@ -259,7 +259,7 @@ app = new Vue({
                                 var node_ip = app.tableData[app.selected_node.id].Node_Addr;
                                 var container = document.getElementById('timeline');
                                 container.innerHTML="";
-                                var options = {zoomable:false, format:{
+                                var options = {zoomable:true, format:{
                                     minorLabels: {
                                         weekday:    'D',
                                 }},showMinorLabels:false,showMajorLabels:false,selectable:false,showCurrentTime:false}
@@ -272,7 +272,7 @@ app = new Vue({
                                         base_start.setDate(base_start.getDate()+ 1);
                                         items.add({
                                             id: i,
-                                            content: "Packet " + e[3] +" - "+e[6] +" -> "+e[6],
+                                            content: "Packet " + e[1] +" - "+e[3] +" -> "+e[6],
                                             start: base_start.toISOString().split('T')[0]
                                         });
                                     }
