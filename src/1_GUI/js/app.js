@@ -117,7 +117,8 @@ app = new Vue({
             fileUpload: false,
             downloadFile: false,
             downloadResults: false,
-            firewall: false
+            firewall: false,
+            timeline: false
         },
         tableData: [],
     },
@@ -232,20 +233,63 @@ app = new Vue({
                 this.clear_selected_node();
             }
             else if (key=="2-3"){
-                // Connect node - deprecated
-                if (network.getSelectedNodes().length == 1) {
-                    this.connect_node_start = network.getSelectedNodes()[0];
+                // Timeline
+                var selectedNode = this.selected_node;
+                var id = selectedNode['id'];
+                if (id==-1){
                     this.$notify({
-                      title: 'Connect nodes',
-                      message: 'Select a node to connect to',
-                      type: 'info'
-                  });
-                } else {
-                    this.$notify({
-                      title: 'Connect nodes',
-                      message: 'Select a node first',
+                      title: 'Warning',
+                      message: 'Select a node to delete',
                       type: 'warning'
                   });
+                }else{
+                    if (!app.$data['simulation']["simulation_run"]){
+                        app.$message({
+                            message: 'Run simulation before attempting to download results',
+                            type: 'error'
+                          });
+                    }else{
+                        websocket_run('get-sim-results', "", (result)=>{
+                            app.$data['simulation']["results_rule"]=result.rule;
+                            app.$data['simulation']["results_node"]=result.node;
+                            app.$data['simulation']["results_packet"]=result.packet;
+                            app.$data['form_visible']['timeline']=true;
+                            app.$data.loading=true;
+                            setTimeout(() => {
+                                var node_ip = app.tableData[app.selected_node.id].Node_Addr;
+                                var container = document.getElementById('timeline');
+                                var options = {zoomable:false, format:{
+                                    minorLabels: {
+                                        weekday:    'D',
+                                }},showMinorLabels:false,showMajorLabels:false,selectable:false,showCurrentTime:false}
+                                var items = new vis.DataSet([])
+                                x = app.simulation.results_node.split("\n");
+                                base_start = new Date();;
+                                for (var i = 1; i < x.length; i++) {
+                                    var e = x[i].split(",");
+                                    if (e[3]==node_ip){
+                                        base_start.setDate(base_start.getDate()+ 1);
+                                        items.add({
+                                            id: i,
+                                            content: "Packet " + e[1] +" - "+e[6] +" - "+e[5],
+                                            start: base_start.toISOString().split('T')[0]
+                                        });
+                                    }
+                                }
+                                var items = new vis.DataSet([
+                                {id: 1, content: 'item 1', start: '2014-04-20'},
+                                {id: 2, content: 'item 2', start: '2014-04-14'},
+                                {id: 3, content: 'item 3', start: '2014-04-18'},
+                                {id: 4, content: 'item 4', start: '2014-04-16'},
+                                {id: 5, content: 'item 5', start: '2014-04-25'},
+                                {id: 6, content: 'item 6', start: '2014-04-27'}
+                                ]);
+                                var timeline = new vis.Timeline(container, items, options);
+                                app.$data.loading=false;
+                            }, 500);
+                        });
+                    }
+
                 }
             }
             else if (key=="3-1"){
